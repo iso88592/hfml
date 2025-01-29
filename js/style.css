@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Liter&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+div.two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    
+}
+
+@media screen and (max-width: 600px) {
+    div.two {
+        display: grid;
+        grid-template-columns: 1fr;
+    }        
+}
+
+div.two > div {
+    display: inline-block;
+    border: 2px solid black;
+    padding: 2rem;
+    margin:1rem;
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 3px 3px 8px #00000080;
+}
+
+div.two > div::before {
+    content: attr(data-caption);
+    position: absolute;
+    top: -10px; 
+    left: 10px;
+    background: white; 
+    padding: 0 0.5rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid black;
+}
+
+#display {
+    background-color: #E0E0E0;
+    color: #121212;
+    font-family: "Liter", serif;
+    font-weight: 400;
+    font-style: normal;
+}

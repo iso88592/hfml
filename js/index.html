@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HFML demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>HFML demo</h1>
+    <div class="two">
+        <div data-caption="Demo">
+            <p>Please select a demo to load!</p>
+            <ul>
+                <li><a href="#" onclick="load('hello.hfml')">hello.hfml</a></li>
+                <li><a href="#" onclick="load('button.hfml')">button.hfml</a></li>
+                <li><a href="#" onclick="load('test.hfml')">test.hfml</a></li>
+            </ul>
+        </div>
+        <div id="source" contenteditable="true" oninput="displayText()" data-caption="Demo source">
+
+        </div>
+    </div>
+    <div class="two">
+        <div id="display" data-caption="Demo preview">
+
+        </div>
+        <div id="dsource" data-caption="Demo html source">
+
+        </div>
+    </div>
+    <div id="specs"></div>
+    <script src="convert.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>

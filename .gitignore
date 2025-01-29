@@ -1,0 +1,7 @@
+.vscode
+
+server
+src/lex.yy.c
+src/hfml.tab.c src/hfml.tab.h
+src/hfml.o
+src/lex.o

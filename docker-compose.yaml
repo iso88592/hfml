@@ -1,0 +1,12 @@
+services:
+  rest-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+     - hfmlserver:/hfml
+    ports: 
+     - 3272:8080
+
+volumes:
+  hfmlserver:
