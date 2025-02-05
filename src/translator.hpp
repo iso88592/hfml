@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <list>
+#include <mutex>
 
 class Tag {
   public:
@@ -32,6 +33,7 @@ class Translator {
   private:
     Tag* currentTag;
     Tag* root;
+    std::mutex translating;
 };
 
 #endif

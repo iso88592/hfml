@@ -2,21 +2,82 @@
 #include <cstring>
 #include <cstdio>
 #include <stdlib.h>
+#include <set>
 
-extern "C" int parse_str(const char* str);
+std::set<uint64_t> mems;
 
-Translator* translator;
+#ifndef LOG_LEVEL
+#define LOG_LEVEL 2
+#endif
 
+#define D(str, ...) { if (LOG_LEVEL >= 3) fprintf(stderr, str, __VA_ARGS__); }
+#define I(str, ...) { if (LOG_LEVEL >= 2) fprintf(stderr, str, __VA_ARGS__); }
+#define W(str, ...) { if (LOG_LEVEL >= 1) fprintf(stderr, str, __VA_ARGS__); }
+#define E(str, ...) { if (LOG_LEVEL >= 0) fprintf(stderr, str, __VA_ARGS__); }
 
 extern "C" {
-void create_tag() {
-  translator->createTag();
+
+#ifdef FULL_LEAK_CHECK
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
+void * yyalloc (size_t bytes, void * /*context*/) {
+  void* p = malloc(bytes);
+  D("alloc: %p\n", p);
+  mems.insert(reinterpret_cast<uint64_t>(p));
+  return p;
 }
-void append_attribute(const char* str) {
-  translator->appendAttribute(str);
+void * yyrealloc (void * ptr, size_t bytes, void * /*context*/) {
+  void* p = realloc(ptr, bytes);
+  D("realloc: %p -> %p\n", ptr, p);
+  if (ptr != p) {
+    if (!mems.contains(reinterpret_cast<uint64_t>(ptr))) {
+      W("WARN: MEMORY ERROR AT %p\n", ptr);
+    }
+    mems.erase(reinterpret_cast<uint64_t>(ptr));
+    mems.insert(reinterpret_cast<uint64_t>(p));
+
+  }
+  return p;
 }
-void append_literal(const char* str) {
-  translator->appendLiteral(str);
+void   yyfree (void * ptr, void * /*context*/) {
+  if (ptr == 0) {
+    D("%s", "free: NULL\n");
+    return;
+  }
+  D("free: %p\n", ptr);
+  if (!mems.contains(reinterpret_cast<uint64_t>(ptr))) {
+    W("WARN: MEMORY ERROR AT %p\n", ptr);
+  } else {
+    mems.erase(reinterpret_cast<uint64_t>(ptr));
+  }
+  free(ptr);
+}
+
+#pragma GCC diagnostic pop
+
+#else
+void * yyalloc (size_t bytes, void * /*context*/) {
+  return malloc(bytes);
+}
+
+void * yyrealloc (void * ptr, size_t bytes, void * /*context*/) {
+  return realloc(ptr, bytes);
+}
+void   yyfree (void * ptr, void * /*context*/) {
+  free(ptr);
+}
+#endif
+
+int parse_str(const char* str, void* p);
+void create_tag(void* p) {
+  reinterpret_cast<Translator*>(p)->createTag();
+}
+void append_attribute(void* p, const char* str) {
+  reinterpret_cast<Translator*>(p)->appendAttribute(str);
+}
+void append_literal(void* p, const char* str) {
+  reinterpret_cast<Translator*>(p)->appendLiteral(str);
 }
 
 char* myitoa(int i) {
@@ -38,14 +99,26 @@ Translator::~Translator() {
 }
 
 
+void removeLeaks(void* context) {
+  for (auto p : mems) {
+    W("LEAK: %p\n", reinterpret_cast<void*>(p));
+    yyfree(reinterpret_cast<void*>(p), context);
+  }
+}
+
 std::string Translator::translate(std::string input) {
-  translator = this;
+  #ifdef USE_TRANSLATE_MUTEX
+    std::lock_guard<std::mutex> lock(translating);
+  #endif
   currentTag = new Tag();
   root = new Tag();
   root->addAttribute("body");
-  parse_str(input.c_str());
+  D("translate: %p\n", this);
+  parse_str(input.c_str(), reinterpret_cast<void*>(this));
   std::string result;
   result = root->getContent();
+  // TODO: get context pointer and only remove those
+  removeLeaks(nullptr);
   return result;
 }
 

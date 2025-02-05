@@ -1,4 +1,4 @@
-FLAGS := -I/hfml/cinatra/include 
+FLAGS := -I/hfml/cinatra/include -DFULL_LEAK_CHECK
 CF := -Wall -Wextra -Werror
 
 server: src/server.cpp src/translator.cpp src/hfml.o src/lex.o
@@ -11,10 +11,10 @@ src/hfml.tab.c src/hfml.tab.h: src/hfml.y
 	bison -d -o src/hfml.tab.c $<
 
 src/hfml.o: src/hfml.tab.c 
-	gcc -c -o src/hfml.o src/hfml.tab.c 
+	gcc -c -o src/hfml.o src/hfml.tab.c -std=c99
 
 src/lex.o: src/lex.yy.c
-	gcc -c -o src/lex.o src/lex.yy.c
+	gcc -c -o src/lex.o src/lex.yy.c -std=c99
 
 clean:
 	-rm src/hfml.tab.c src/hfml.tab.h src/hfml.o src/lex.o src/lex.yy.c

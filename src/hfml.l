@@ -1,6 +1,11 @@
+%option reentrant bison-bridge bison-locations
+%option noyyalloc noyyrealloc noyyfree
+
 %{
     #include "hfml.tab.h"
+    #include "scanner_extra.h"
     #include <stdio.h>
+    #include <string.h>
 %}
 
 %option yylineno
@@ -22,13 +27,13 @@ number               [0-9]+
 ":"                  return COLON;
 ","                  return COMMA;
 "="                  return EQUALS;
-{identifier}         { yylval.str = strdup(yytext); return IDENTIFIER; }
-{number}             { yylval.num = atoi(yytext); return NUMBER; }
-{literal}            { yylval.str = strdup(yytext); return LITERAL; }
+{identifier}         { yylval->str = yytext; return IDENTIFIER; }
+{number}             { yylval->num = atoi(yytext); return NUMBER; }
+{literal}            { yylval->str = yytext; return LITERAL; }
 {whitespace}         /*ignore*/
 
 %%
 
-int yywrap() {
+int yywrap(void*) {
     return 1;
 }

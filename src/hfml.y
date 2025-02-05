@@ -1,24 +1,30 @@
+%define api.pure
+%locations
+%param { yyscan_t scanner }
+%code requires {
+    #include "scanner_extra.h"
+    typedef void* yyscan_t;
+}
+%code {
+    int yylex(YYSTYPE* yylvalp, YYLTYPE* yyllocp, yyscan_t scanner);
+    void yyerror(YYLTYPE* yyllocp, yyscan_t unused, const char* msg);
+    #define EXTRA (yyget_extra(scanner))
+}
 %{
 #include "hfml.tab.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
-extern int yylex();
-extern void yyerror(const char* s);
-extern int yylineno;
-extern char* yytext;
-extern YY_BUFFER_STATE yy_scan_string(const char * str);
-extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
-extern void create_tag();
-extern void append_attribute(const char* str);
-extern void append_literal(const char* str);
+extern void create_tag(void* p);
+extern void append_attribute(void* p, const char* str);
+extern void append_literal(void* p, const char* str);
 extern char* myitoa(int i);
-char* lastItem;
-char* attr;
+extern void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
+extern YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 %}
+
 
 %union {
     char* str;
@@ -38,14 +44,14 @@ start: strlist
 strlist : str strlist 
         |
 
-str : OPEN_STR str_internals CLOSE_STR { create_tag(); }
+str : OPEN_STR str_internals CLOSE_STR { create_tag(EXTRA->caller); }
 str_internals : str_internal str_internals 
               | { }
 
 str_internal : attribute 
-             | LITERAL { append_literal($1); }
-             | IDENTIFIER { append_literal($1); }
-             | NUMBER { append_literal(myitoa($1)); }
+             | LITERAL { append_literal(EXTRA->caller, $1); }
+             | IDENTIFIER { append_literal(EXTRA->caller, $1); }
+             | NUMBER { append_literal(EXTRA->caller, myitoa($1)); }
              | str
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
@@ -53,7 +59,7 @@ attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
 attribute_modifiers : COLON attribute_modifier attribute_modifiers
                     |
 
-attribute_selector : IDENTIFIER { append_attribute($1); }
+attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
 
 attribute_modifier : event
                    | NUMBER
@@ -67,14 +73,19 @@ str_comma : str
           | str COMMA str_comma 
 
 %%
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s at line %d near `%s'\n", s, yylineno, yytext);
+void yyerror(YYLTYPE* yyllocp, yyscan_t unused, const char* s) {
+    fprintf(stderr, "Error: %s at line %d:%d near `%s'\n", s, yyllocp->first_line, yyllocp->first_column , "??");
 }
 
-int parse_str(const char* str) {
-    YY_BUFFER_STATE msb = yy_scan_string(str);
-    yylineno = 1;
-    int result = yyparse();
-    yy_delete_buffer(msb);
+int parse_str(const char* str, void* p) {
+    yyscan_t scanner;
+    ScannerExtraData extra;
+    yylex_init_extra(&extra, &scanner);
+    extra.caller = p;
+    yyset_debug(1, scanner);
+    YY_BUFFER_STATE msb = yy_scan_string(str, scanner);
+    int result = yyparse(scanner);
+    yylex_destroy(scanner);
+
     return result;
 }
