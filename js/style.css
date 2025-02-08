@@ -58,3 +58,7 @@ span.code {
     padding-right: 0.1rem;
     font-family: 'Courier New', Courier, monospace;
 }
+
+.error-list {
+    color: red;
+}

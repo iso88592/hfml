@@ -7,7 +7,7 @@
 }
 %code {
     int yylex(YYSTYPE* yylvalp, YYLTYPE* yyllocp, yyscan_t scanner);
-    void yyerror(YYLTYPE* yyllocp, yyscan_t unused, const char* msg);
+    void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* msg);
     #define EXTRA (yyget_extra(scanner))
 }
 %{
@@ -73,8 +73,10 @@ str_comma : str
           | str COMMA str_comma 
 
 %%
-void yyerror(YYLTYPE* yyllocp, yyscan_t unused, const char* s) {
-    fprintf(stderr, "Error: %s at line %d:%d near `%s'\n", s, yyllocp->first_line, yyllocp->first_column , "??");
+void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* s) {
+    char buffer[1024];
+    snprintf(buffer, 1023, "Error: %s at line %d:%d near `%s'", s, yyllocp->first_line, yyllocp->first_column , "??");
+    report_error(EXTRA->caller, buffer);
 }
 
 int parse_str(const char* str, void* p) {

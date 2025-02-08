@@ -30,10 +30,12 @@ class Translator {
     void createTag();
     void appendAttribute(const char* str);
     void appendLiteral(const char* str);
+    void reportError(const char* str);
   private:
     Tag* currentTag;
     Tag* root;
     std::mutex translating;
+    std::string error;
 };
 
 #endif

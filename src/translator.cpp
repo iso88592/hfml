@@ -79,6 +79,9 @@ void append_attribute(void* p, const char* str) {
 void append_literal(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->appendLiteral(str);
 }
+void report_error(void* p, const char* str) {
+  reinterpret_cast<Translator*>(p)->reportError(str);
+}
 
 char* myitoa(int i) {
   char c[33];
@@ -110,6 +113,7 @@ std::string Translator::translate(std::string input) {
   #ifdef USE_TRANSLATE_MUTEX
     std::lock_guard<std::mutex> lock(translating);
   #endif
+  error = "";
   currentTag = new Tag();
   root = new Tag();
   root->addAttribute("body");
@@ -119,6 +123,9 @@ std::string Translator::translate(std::string input) {
   result = root->getContent();
   // TODO: get context pointer and only remove those
   removeLeaks(nullptr);
+      if (error != "") {
+      result += "<div class=\"error-list\">"+error+"</div>";
+    }
   return result;
 }
 
@@ -133,6 +140,11 @@ void Translator::appendAttribute(const char* str) {
 
 void Translator::appendLiteral(const char* str) {
   currentTag->addLiteral(std::string{str});
+}
+
+void Translator::reportError(const char* str) {
+  error += str;
+  error += "<br>";
 }
 
 void Tag::addAttribute(std::string str) {
