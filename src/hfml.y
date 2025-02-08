@@ -64,7 +64,7 @@ attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
 attribute_modifier : event
                    | NUMBER
 
-event : IDENTIFIER params
+event : IDENTIFIER params {  }
 params : OPEN_PAREN str_comma CLOSE_PAREN 
        | EQUALS str
        |
@@ -84,6 +84,7 @@ int parse_str(const char* str, void* p) {
     extra.caller = p;
     yyset_debug(1, scanner);
     YY_BUFFER_STATE msb = yy_scan_string(str, scanner);
+    yyset_lineno(1, scanner);
     int result = yyparse(scanner);
     yylex_destroy(scanner);
 
