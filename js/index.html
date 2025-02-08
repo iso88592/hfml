@@ -5,28 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HFML demo</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg">
 </head>
 <body>
-    <h1>HFML demo</h1>
+    <h1>&lt;<img src="favicon.svg" alt="HFML icon" class="icon-inline">&gt; HFML demo</h1>
     <div class="two">
-        <div data-caption="Demo">
+        <div class="groupbox" data-caption="Demo">
             <p>Please select a demo to load!</p>
             <ul>
                 <li><a href="#" onclick="load('hello.hfml')">hello.hfml</a></li>
                 <li><a href="#" onclick="load('button.hfml')">button.hfml</a></li>
                 <li><a href="#" onclick="load('test.hfml')">test.hfml</a></li>
+                <li><a href="#" onclick="load('dynamic.hfml')">dynamic.hfml</a></li>
             </ul>
         </div>
-        <div id="source" contenteditable="true" oninput="displayText()" data-caption="Demo source">
+        <div class="groupbox" id="source" contenteditable="true" oninput="displayText()" data-caption="Demo source">
 
         </div>
     </div>
     <div class="two">
-        <div id="display" data-caption="Demo preview">
+        <div class="groupbox" id="display" data-caption="Demo preview">
 
         </div>
-        <div id="dsource" data-caption="Demo html source">
+        <div class="groupbox" id="dsource" data-caption="Demo html source">
 
+        </div>
+    </div>
+    <div class="one">
+        <div class="groupbox" data-caption="Syntax">
+            <h2>About the syntax</h2>
+            <p>
+                HFML is designed to use the least amount of resources possible to render complex web pages, therefore we use the least amount of tokens possible in
+                parsing all the language primitives. There are a few rules to understand:
+                <ul>
+                    <li>Everything insde <span class="code">&lt;&gt;</span> is considered and rendered as text.</li>
+                    <li>Text can be modified to have special semantic attributes with <span class="code">[]</span>. This is equivalent to HTML's elements like tags, classes, ids, etc.</li>
+                    <li>There are predefined attributes that function as HTML's tags. They are usually the same as the original HTML tags' name.</li>
+                    <li>Elements starting with a <span class="code">#</span> are considered to be ids.</li>
+                    <li>Attributes can have general and special modifiers that are separated by <span class="code">:</span>. Any number of modifiers are accepted.</li>
+                    <li>Events are special attributes. There is no need for any client side programming, since every event can be handled the predefined event handlers.</li>
+                </ul>
+            </p>
         </div>
     </div>
     <div id="specs"></div>

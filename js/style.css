@@ -3,7 +3,11 @@
 div.two {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    
+}
+
+div.one {
+    display: grid;
+    grid-template-columns: 1fr;
 }
 
 @media screen and (max-width: 600px) {
@@ -13,7 +17,7 @@ div.two {
     }        
 }
 
-div.two > div {
+.groupbox {
     display: inline-block;
     border: 2px solid black;
     padding: 2rem;
@@ -23,7 +27,7 @@ div.two > div {
     box-shadow: 3px 3px 8px #00000080;
 }
 
-div.two > div::before {
+.groupbox::before {
     content: attr(data-caption);
     position: absolute;
     top: -10px; 
@@ -42,4 +46,15 @@ div.two > div::before {
     font-family: "Liter", serif;
     font-weight: 400;
     font-style: normal;
+}
+
+img.icon-inline {
+    height: 0.6lh;
+}
+
+span.code {
+    background-color: #E0E0E0;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    font-family: 'Courier New', Courier, monospace;
 }
