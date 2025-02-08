@@ -21,3 +21,8 @@ async function displayText() {
     document.getElementById("display").innerHTML = converted;
     document.getElementById("dsource").innerText = converted;
 }
+
+function changeTheme() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+}
