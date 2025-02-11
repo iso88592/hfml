@@ -8,7 +8,7 @@ src/lex.yy.c: src/hfml.l src/hfml.tab.h
 	flex -o $@ $<
 
 src/hfml.tab.c src/hfml.tab.h: src/hfml.y
-	bison -d -o src/hfml.tab.c $<
+	bison -v --report-file=bison.log -d -o src/hfml.tab.c $<
 
 src/hfml.o: src/hfml.tab.c
 	gcc -c -o src/hfml.o src/hfml.tab.c -std=c99

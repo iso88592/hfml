@@ -39,7 +39,7 @@ extern char* concat(char* c, char* str);
 %token <str> LITERAL
 %token <num> NUMBER
 %token OPEN_STR CLOSE_STR OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH
-%type <mystr> string
+%type <mystr> string string_mul
 
 %start start
 
@@ -50,7 +50,6 @@ strlist : str strlist
         |
 
 string: LITERAL { $$ = mystr_construct_s($1); }
-      | string string { $$ = mystr_consume($1, $2); }
       | HASH { $$ = mystr_construct_s("#"); }
       | COLON { $$ = mystr_construct_s(":"); }
       | IDENTIFIER { $$ = mystr_construct_s($1); }

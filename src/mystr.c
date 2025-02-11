@@ -5,12 +5,13 @@
 #include <strings.h>
 #include <stdlib.h>
 
+const int MYSTR_INITIAL_BLOCK_COUNT = 1;
 const int MYSTR_BLOCK_COUNT = 64;
 
 void mystr_create(struct mystr* self) {
-    self->parts = (char**)malloc(sizeof(char*) * MYSTR_BLOCK_COUNT);
+    self->parts = (char**)malloc(sizeof(char*) * MYSTR_INITIAL_BLOCK_COUNT);
     self->partCount = 0;
-    self->partCapacity = MYSTR_BLOCK_COUNT;
+    self->partCapacity = MYSTR_INITIAL_BLOCK_COUNT;
 }
 
 struct mystr* mystr_construct() {
