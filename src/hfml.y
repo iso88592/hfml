@@ -2,6 +2,7 @@
 %locations
 %param { yyscan_t scanner }
 %code requires {
+    #include "mystr.h"
     #include "scanner_extra.h"
     typedef void* yyscan_t;
 }
@@ -13,6 +14,7 @@
 %{
 #include "hfml.tab.h"
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,18 +25,21 @@ extern void append_literal(void* p, const char* str);
 extern char* myitoa(int i);
 extern void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 extern YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
+extern char* concat(char* c, char* str);
 %}
 
 
 %union {
     char* str;
     int num;
+    struct mystr* mystr;
 }
 
 %token <str> IDENTIFIER
 %token <str> LITERAL
 %token <num> NUMBER
-%token OPEN_STR CLOSE_STR OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS
+%token OPEN_STR CLOSE_STR OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH
+%type <mystr> string
 
 %start start
 
@@ -44,14 +49,24 @@ start: strlist
 strlist : str strlist 
         |
 
+string: LITERAL { $$ = mystr_construct_s($1); }
+      | string string { $$ = mystr_consume($1, $2); }
+      | HASH { $$ = mystr_construct_s("#"); }
+      | COLON { $$ = mystr_construct_s(":"); }
+      | IDENTIFIER { $$ = mystr_construct_s($1); }
+      | NUMBER { $$ = mystr_construct_s(myitoa($1)); }
+
 str : OPEN_STR str_internals CLOSE_STR { create_tag(EXTRA->caller); }
 str_internals : str_internal str_internals 
               | { }
 
 str_internal : attribute 
-             | LITERAL { append_literal(EXTRA->caller, $1); }
-             | IDENTIFIER { append_literal(EXTRA->caller, $1); }
-             | NUMBER { append_literal(EXTRA->caller, myitoa($1)); }
+             | string { 
+                char* p = mystr_to_c($1); 
+                append_literal(EXTRA->caller, p); 
+                free(p);
+                mystr_destroy($1); 
+                }
              | str
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
@@ -60,6 +75,7 @@ attribute_modifiers : COLON attribute_modifier attribute_modifiers
                     |
 
 attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
+                   | HASH IDENTIFIER { append_literal(EXTRA->caller, $2); }
 
 attribute_modifier : event
                    | NUMBER

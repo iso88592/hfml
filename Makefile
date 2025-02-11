@@ -1,20 +1,23 @@
 FLAGS := -I/hfml/cinatra/include -DFULL_LEAK_CHECK
 CF := -Wall -Wextra -Werror
 
-server: src/server.cpp src/translator.cpp src/hfml.o src/lex.o
-	g++ -std=c++20 ${FLAGS} ${CF} -o server src/translator.cpp src/server.cpp src/hfml.o src/lex.o ${LINK}
+server: src/server.cpp src/translator.cpp src/hfml.o src/lex.o src/mystr.o
+	g++ -std=c++20 ${FLAGS} ${CF} -o server src/translator.cpp src/server.cpp src/hfml.o src/lex.o src/mystr.o ${LINK}
 
 src/lex.yy.c: src/hfml.l src/hfml.tab.h
 	flex -o $@ $<
 
-src/hfml.tab.c src/hfml.tab.h: src/hfml.y 
+src/hfml.tab.c src/hfml.tab.h: src/hfml.y
 	bison -d -o src/hfml.tab.c $<
 
-src/hfml.o: src/hfml.tab.c 
+src/hfml.o: src/hfml.tab.c
 	gcc -c -o src/hfml.o src/hfml.tab.c -std=c99
+
+src/mystr.o: src/mystr.c
+	gcc -c -o src/mystr.o src/mystr.c -std=c99
 
 src/lex.o: src/lex.yy.c
 	gcc -c -o src/lex.o src/lex.yy.c -std=c99
 
 clean:
-	-rm src/hfml.tab.c src/hfml.tab.h src/hfml.o src/lex.o src/lex.yy.c
+	-rm src/hfml.tab.c src/hfml.tab.h src/hfml.o src/lex.o src/lex.yy.c src/mystr.o
