@@ -31,29 +31,29 @@ HFML is an easy to read, easy to parse HTML alternative that powers the World Wi
 
 ## How it works
 HFML is built around the concept of content-first design. At its core, the format simplifies how content is expressed and interacted with on the web. Here's how it works:
- 1. Content as the Primary Focus: HFML's syntax allows the content itself to be front-and-center. Everything inside `<>` is treated as plain text by default, with metadata inside square brackets `[]` controlling how that content is rendered or behaves. For example, `<hello world>` just outputs "hello world" on the page.
+ 1. Content as the Primary Focus: HFML's syntax allows the content itself to be front-and-center. Components are defined in `<>` and is a recursive type, just like in HTML. You can place text content in `{}`, with metadata inside square brackets `[]` controlling how that content is rendered or behaves. For example, `<{hello world}>` just outputs "hello world" on the page.
 
- 2. Simple Metadata Modifiers: Metadata is attached directly to the content using square brackets `[]`, specifying things like styles, actions, and behavior. For example:
+ 2. Plain text is always inside `{}`, so it's easy to parse and highlight. All HFML texts must be well-formed, and everything inside `{}` are considered to be text.
 
-```<hello world[input:button][click:alert(<hello>)]>```
+ 3. Simple Metadata Modifiers: Metadata is attached directly to the content using square brackets `[]`, specifying things like styles, actions, and behavior. For example:
+
+```<{hello world}[input:button][click:alert({hello})]>```
 
 In this example:
 
  * `[input:button]` turns the content into a button.
- * `[click:alert(<hello>)]` triggers an alert when the button is clicked.
+ * `[click:alert({hello})]` triggers an alert when the button is clicked.
 
- 3. Nesting for Complex Layouts: While the default is simple, HFML also supports nesting content. Nested elements are still treated as content, and metadata can be applied to them, providing a clean and simple way to handle complex structures:
+ 3. Nesting for Complex Layouts: While the default is simple, HFML also supports nesting content. Nested elements are still treated as components, and metadata can be applied to them, providing a clean and simple way to handle complex structures:
     ```hfml
     <[div][style:flex] 
-        <[header][style:text-align=center]Welcome!> 
-        <[content][style:padding=10px]This is your content.>
+        <[header][style:text-align=center]{Welcome!}> 
+        <[content][style:padding=10px]{This is your content.}>
     >
     ```
 Here, the outer div has a flex layout, and each nested element (header and content) has its own style applied.
 
- 4. String Folding: By default, HFML treats the content inside `<...>` as a string. It’s only modified or interpreted by the metadata, which means you’re never tangled in complex tag structures. The content itself is the heart of the markup.
-
- 5. Efficient Parsing: HFML can be parsed quickly and easily by browsers or any custom parser. The format avoids unnecessary legacy structures and instead focuses on streamlined, high-performance rendering.
+ 4. Efficient Parsing: HFML can be parsed quickly and easily by browsers or any custom parser. The format avoids unnecessary legacy structures and instead focuses on streamlined, high-performance rendering.
 
 ## Why HFML?
 
@@ -72,13 +72,14 @@ HFML is a modern alternative to HTML that prioritizes **readability**, **perform
  2. **Writing HFML**
 
     Writing HFML is simple:
-        Use the `<...>` syntax for content.
+        Use the `<...>` syntax for components.
+        Use `{}` to include text.
         Use `[<metadata>]` to control how content behaves or appears.
-        Nest containers and apply actions as needed for more complex layouts.
+        Nest components and apply actions as needed for more complex layouts.
 
     Example:
 ```
-    <hello world[input:button][click:alert(<You clicked!>)]>
+    <{hello world}[input:button][click:alert({You clicked!})]>
 ```
   3. **Running the Parser**
 

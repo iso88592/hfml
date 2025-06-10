@@ -1,2 +1,2 @@
-<[h:1]The Button Example>
-<Push me[button][click:alert(<Hello!>)]>
+<[h1]{The Button Example}>
+<{Push me}[button][click:alert({Hello!})]>

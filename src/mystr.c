@@ -22,7 +22,7 @@ struct mystr* mystr_construct() {
 
 struct mystr* mystr_construct_s(const char* str) {
     struct mystr* result = mystr_construct();
-    mystr_append(result, str);
+    mystr_append_l(result, str+1, strlen(str) - 2);
     return result;
 }
 
@@ -34,17 +34,23 @@ void mystr_destroy(struct mystr* self) {
     free(self->parts);
 }
 
-void mystr_append(struct mystr* self, const char* str) {
+void mystr_append_l(struct mystr* self, const char* str, int len) {
     if (self->partCount >= self->partCapacity) {
         self->partCapacity += MYSTR_BLOCK_COUNT;
         self->parts = (char**)realloc(self->parts, sizeof(char*) * self->partCapacity);
     }
-    int nl = strlen(str) + 1;
+    int nl = len + 1;
     char* newString = (char*)malloc(nl);
-    strncpy(newString, str, nl);
+    newString[len] = 0;
+    strncpy(newString, str, nl-1);
     self->parts[self->partCount] = newString;
     self->partCount++;
 }
+
+void mystr_append(struct mystr* self, const char* str) {
+    mystr_append_l(self, str, strlen(str));
+}
+
 
 struct mystr* mystr_consume(struct mystr* left, struct mystr* right) {
     int totalSize = left->partCount + right->partCount;

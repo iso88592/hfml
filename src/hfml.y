@@ -9,6 +9,12 @@
 %code {
     int yylex(YYSTYPE* yylvalp, YYLTYPE* yyllocp, yyscan_t scanner);
     void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* msg);
+    void report_error(void* p, const char* str);
+    void yylex_init_extra(void*, void*);
+    void yyset_debug(int, void*);
+    void* yy_scan_string(const char*, void*);
+    void yyset_lineno(int, void*);
+    void yylex_destroy(void*);
     #define EXTRA (yyget_extra(scanner))
 }
 %{
@@ -38,35 +44,32 @@ extern char* concat(char* c, char* str);
 %token <str> IDENTIFIER
 %token <str> LITERAL
 %token <num> NUMBER
-%token OPEN_STR CLOSE_STR OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH
-%type <mystr> string string_mul
+%token OPEN_COMP CLOSE_COMP OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH
+%type <mystr> string
 
 %start start
 
 %%
 
-start: strlist
-strlist : str strlist 
-        |
+start: components
 
 string: LITERAL { $$ = mystr_construct_s($1); }
-      | HASH { $$ = mystr_construct_s("#"); }
-      | COLON { $$ = mystr_construct_s(":"); }
-      | IDENTIFIER { $$ = mystr_construct_s($1); }
-      | NUMBER { $$ = mystr_construct_s(myitoa($1)); }
 
-str : OPEN_STR str_internals CLOSE_STR { create_tag(EXTRA->caller); }
+components : component components |
+           |
+
+component : OPEN_COMP str_internals CLOSE_COMP { create_tag(EXTRA->caller); }
 str_internals : str_internal str_internals 
               | { }
 
 str_internal : attribute 
+             | component
              | string { 
                 char* p = mystr_to_c($1); 
                 append_literal(EXTRA->caller, p); 
                 free(p);
                 mystr_destroy($1); 
                 }
-             | str
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
 
@@ -81,11 +84,11 @@ attribute_modifier : event
 
 event : IDENTIFIER params {  }
 params : OPEN_PAREN str_comma CLOSE_PAREN 
-       | EQUALS str
+       | EQUALS string
        |
 
-str_comma : str 
-          | str COMMA str_comma 
+str_comma : string 
+          | string COMMA str_comma 
 
 %%
 void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* s) {
