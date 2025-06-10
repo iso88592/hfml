@@ -20,11 +20,10 @@
 
 %option yylineno
 
-ASC1    [\x20-\x22]
-ASC2    [\x24-\x7a]
-ASC3    [\x7c]
-ASC4    [\x7e-\x7f]
-ASC     {ASC1}|{ASC2}|{ASC3}|{ASC4}
+ASC1    [\x20-\x7a]
+ASC2    [\x7c]
+ASC3    [\x7e-\x7f]
+ASC     {ASC1}|{ASC2}|{ASC3}
 U       [\x80-\xbf]
 U2      [\xc2-\xdf]
 U3      [\xe0-\xef]

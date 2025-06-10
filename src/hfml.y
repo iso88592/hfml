@@ -88,6 +88,7 @@ params : OPEN_PAREN str_comma CLOSE_PAREN
        |
 
 str_comma : string 
+          | HASH IDENTIFIER
           | string COMMA str_comma 
 
 %%
