@@ -73,6 +73,9 @@ int parse_str(const char* str, void* p);
 void create_tag(void* p) {
   reinterpret_cast<Translator*>(p)->createTag();
 }
+void pop_tag(void* p) {
+  reinterpret_cast<Translator*>(p)->popTag();
+}
 void append_attribute(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->appendAttribute(str);
 }
@@ -114,8 +117,8 @@ std::string Translator::translate(std::string input) {
     std::lock_guard<std::mutex> lock(translating);
   #endif
   error = "";
-  currentTag = new Tag();
   root = new Tag();
+  currentTag = root;
   root->addAttribute("body");
   D("translate: %p\n", this);
   parse_str(input.c_str(), reinterpret_cast<void*>(this));
@@ -130,8 +133,13 @@ std::string Translator::translate(std::string input) {
 }
 
 void Translator::createTag() {
-  root->addChild(currentTag);
-  currentTag = new Tag();
+  Tag* newTag = new Tag();
+  currentTag->addChild(newTag);
+  currentTag = newTag;
+}
+
+void Translator::popTag() {
+  currentTag = currentTag->getParent();
 }
 
 void Translator::appendAttribute(const char* str) {
@@ -145,6 +153,10 @@ void Translator::appendLiteral(const char* str) {
 void Translator::reportError(const char* str) {
   error += str;
   error += "<br>";
+}
+
+Tag* Tag::getParent() {
+  return parent;
 }
 
 void Tag::addAttribute(std::string str) {
@@ -164,16 +176,27 @@ void Tag::addEvent(std::string /*unused*/) {
 }
 
 void Tag::addLiteral(std::string str) {
-  content = content + str;
+  addChild(new TextTag(str));
 }
 
 Tag::Tag() {
     attr = "div";
 }
 
+TextTag::TextTag(std::string str):Tag() {
+  content = str;
+}
+
+TextTag::~TextTag() {
+}
+
+std::string TextTag::getContent() {
+  return content;
+}
+
+
 std::string Tag::getContent() {
     std::string result = "<"+attr+">";
-    result += content;
     for (auto v : children) {
         result += v->getContent();
     }

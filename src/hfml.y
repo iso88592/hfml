@@ -26,6 +26,7 @@
 
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern void create_tag(void* p);
+extern void pop_tag(void* p);
 extern void append_attribute(void* p, const char* str);
 extern void append_literal(void* p, const char* str);
 extern char* myitoa(int i);
@@ -58,17 +59,20 @@ string: LITERAL { $$ = mystr_construct_s($1); }
 components : component components |
            |
 
-component : OPEN_COMP str_internals CLOSE_COMP { create_tag(EXTRA->caller); }
-str_internals : str_internal str_internals 
-              | { }
+component_create: OPEN_COMP { create_tag(EXTRA->caller); }
+component_close: CLOSE_COMP { pop_tag(EXTRA->caller); }
+
+component : component_create str_internals component_close
+str_internals : str_internal str_internals
+              |
 
 str_internal : attribute 
              | component
              | string { 
-                char* p = mystr_to_c($1); 
-                append_literal(EXTRA->caller, p); 
-                free(p);
-                mystr_destroy($1); 
+                    char* p = mystr_to_c($1); 
+                    append_literal(EXTRA->caller, p); 
+                    free(p);
+                    mystr_destroy($1); 
                 }
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR

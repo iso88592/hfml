@@ -40,14 +40,6 @@ div.one {
     border: 1px solid black;
 }
 
-#display {
-    background-color: #E0E0E0;
-    color: #121212;
-    font-family: "Liter", serif;
-    font-weight: 400;
-    font-style: normal;
-}
-
 img.icon-inline {
     height: 0.6lh;
 }

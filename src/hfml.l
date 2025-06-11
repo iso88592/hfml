@@ -28,10 +28,11 @@ U       [\x80-\xbf]
 U2      [\xc2-\xdf]
 U3      [\xe0-\xef]
 U4      [\xf0-\xf4]
-UANY    {ASC}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
+UANY    [\n]|{ASC}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
+UESC    {UANY}|"\\{"|"\\}"
 
 identifier           [a-zA-Z_][a-zA-Z0-9_$]*
-literal              [{]{UANY}+[}]
+literal              [{]{UESC}+[}]
 whitespace           [ \t\r\n]*
 number               [0-9]+
 
@@ -48,7 +49,7 @@ number               [0-9]+
 "#"                  return HASH;
 {identifier}         { yylval->str = yytext; return IDENTIFIER; }
 {number}             { yylval->num = atoi(yytext); return NUMBER; }
-{literal}      { yylval->str = yytext; return LITERAL; }
+{literal}            { yylval->str = yytext; return LITERAL; }
 {whitespace}         /*ignore*/
 
 %%

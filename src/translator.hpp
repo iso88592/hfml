@@ -14,13 +14,23 @@ class Tag {
     void addChild(Tag* child);
     bool isEvent(std::string str);
     void addEvent(std::string str);
-    std::string getContent();
+    Tag* getParent();
+    virtual std::string getContent();
   private:
-    std::string content;
     Tag* parent;
     std::list<Tag*> children;
     std::string attr;
 };
+
+class TextTag: public Tag {
+  public:
+    TextTag(std::string str);
+    virtual ~TextTag();
+    virtual std::string getContent() override;
+  private:
+    std::string content;
+};
+
 
 class Translator {
   public:
@@ -31,6 +41,7 @@ class Translator {
     void appendAttribute(const char* str);
     void appendLiteral(const char* str);
     void reportError(const char* str);
+    void popTag();
   private:
     Tag* currentTag;
     Tag* root;
