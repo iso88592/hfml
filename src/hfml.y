@@ -23,8 +23,12 @@
 #include <strings.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
+
+extern void restore_phase();
+extern void reset_phase();
 extern void create_tag(void* p);
 extern void pop_tag(void* p);
 extern void append_attribute(void* p, const char* str);
@@ -56,7 +60,7 @@ start: components
 
 string: LITERAL { $$ = mystr_construct_s($1); }
 
-components : components component |
+components : components component
            |
 
 component : OPEN_COMP { create_tag(EXTRA->caller); } str_internals { pop_tag(EXTRA->caller); } CLOSE_COMP
@@ -101,20 +105,69 @@ void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* s) {
     report_error(EXTRA->caller, buffer);
 }
 
-int parse_str(const char* str, void* p) {
+typedef struct {
     yyscan_t scanner;
     ScannerExtraData extra;
-    yylex_init_extra(&extra, &scanner);
-    extra.caller = p;
-#ifdef YY_DEBUG    
-    yyset_debug(1, scanner);
-#else
-    yyset_debug(0, scanner);
-#endif    
-    YY_BUFFER_STATE msb = yy_scan_string(str, scanner);
-    yyset_lineno(1, scanner);
-    int result = yyparse(scanner);
-    yylex_destroy(scanner);
+    bool in_use;
 
+} ScannerWrapper;
+
+ScannerWrapper** scanners;
+int scannerSpin = 0;
+
+#ifndef SCANNER_COUNT
+#define SCANNER_COUNT 64
+#endif
+
+__attribute__((constructor))
+void create_scanners() {
+    scanners = malloc(sizeof(ScannerWrapper*) * SCANNER_COUNT);
+    for (int i = 0; i < SCANNER_COUNT; i++) {
+        scanners[i] = malloc(sizeof(ScannerWrapper));
+        bzero(scanners[i], sizeof(ScannerWrapper));
+        yylex_init_extra(&scanners[i]->extra, &scanners[i]->scanner);
+#ifdef YY_DEBUG    
+        yyset_debug(1, scanners[i]->scanner);
+#else
+        yyset_debug(0, scanners[i]->scanner);
+#endif    
+        scanners[i]->in_use = false;
+        fprintf(stderr, "Created scanner %d at %p with scanner %p extra data at %p\n", i, scanners[i], scanners[i]->scanner, &scanners[i]->extra);
+    }
+    reset_phase();
+}
+
+__attribute__((destructor))
+void destroy_scanners() {
+    restore_phase();
+    for (int i = 0; i < SCANNER_COUNT; i++) {
+        yylex_destroy(scanners[i]->scanner);
+        free(scanners[i]);
+    }
+    free(scanners);
+}
+
+ScannerWrapper* acquire_scanner() {
+    ScannerWrapper* result;
+    do {
+        result = scanners[scannerSpin];
+        scannerSpin++;
+        scannerSpin %= SCANNER_COUNT;
+    } while (result->in_use == true);
+    result->in_use = true;
+    return result;
+}
+
+void free_scanner(ScannerWrapper* wrapper) {
+    wrapper->in_use = false;
+}
+
+int parse_str(const char* str, void* p) {
+    ScannerWrapper* wrapper = acquire_scanner();
+    wrapper->extra.caller = p;
+    YY_BUFFER_STATE buffer = yy_scan_string(str, wrapper->scanner);
+    yyset_lineno(1, wrapper->scanner);
+    int result = yyparse(wrapper->scanner);
+    free_scanner(wrapper);
     return result;
 }

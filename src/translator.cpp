@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <set>
 
-std::set<uint64_t> mems;
+std::set<std::tuple<uint64_t,uint64_t>> mems;
+std::set<std::tuple<uint64_t,uint64_t>> static_mems;
 
 #ifndef LOG_LEVEL
 #define LOG_LEVEL 2
@@ -21,35 +22,46 @@ extern "C" {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuse-after-free"
-void * yyalloc (size_t bytes, void * /*context*/) {
+
+void restore_phase() {
+  mems.insert(static_mems.begin(), static_mems.end());
+}
+
+void reset_phase() {
+  static_mems.insert(mems.begin(), mems.end());
+  fprintf(stderr, "Initialization done. Removing %ld items from memory pool\n", mems.size());
+  mems.clear();
+}
+
+void * yyalloc (size_t bytes, void * context) {
   void* p = malloc(bytes);
   D("alloc: %p\n", p);
-  mems.insert(reinterpret_cast<uint64_t>(p));
+  mems.insert({reinterpret_cast<uint64_t>(p),reinterpret_cast<uint64_t>(context)});
   return p;
 }
-void * yyrealloc (void * ptr, size_t bytes, void * /*context*/) {
+void * yyrealloc (void * ptr, size_t bytes, void * context) {
   void* p = realloc(ptr, bytes);
   D("realloc: %p -> %p\n", ptr, p);
   if (ptr != p) {
-    if (!mems.contains(reinterpret_cast<uint64_t>(ptr))) {
+    if (!mems.contains({reinterpret_cast<uint64_t>(ptr), reinterpret_cast<uint64_t>(context)})) {
       W("WARN: MEMORY ERROR AT %p\n", ptr);
     }
-    mems.erase(reinterpret_cast<uint64_t>(ptr));
-    mems.insert(reinterpret_cast<uint64_t>(p));
+    mems.erase({reinterpret_cast<uint64_t>(ptr),reinterpret_cast<uint64_t>(context)});
+    mems.insert({reinterpret_cast<uint64_t>(p),reinterpret_cast<uint64_t>(context)});
 
   }
   return p;
 }
-void   yyfree (void * ptr, void * /*context*/) {
+void   yyfree (void * ptr, void * context) {
   if (ptr == 0) {
     D("%s", "free: NULL\n");
     return;
   }
   D("free: %p\n", ptr);
-  if (!mems.contains(reinterpret_cast<uint64_t>(ptr))) {
+  if (!mems.contains({reinterpret_cast<uint64_t>(ptr),reinterpret_cast<uint64_t>(context)})) {
     W("WARN: MEMORY ERROR AT %p\n", ptr);
   } else {
-    mems.erase(reinterpret_cast<uint64_t>(ptr));
+    mems.erase({reinterpret_cast<uint64_t>(ptr),reinterpret_cast<uint64_t>(context)});
   }
   free(ptr);
 }
@@ -57,6 +69,11 @@ void   yyfree (void * ptr, void * /*context*/) {
 #pragma GCC diagnostic pop
 
 #else
+
+void restore_phase() {}
+
+void reset_phase() {}
+
 void * yyalloc (size_t bytes, void * /*context*/) {
   return malloc(bytes);
 }
@@ -107,8 +124,9 @@ Translator::~Translator() {
 
 void removeLeaks(void* context) {
   for (auto p : mems) {
-    W("LEAK: %p\n", reinterpret_cast<void*>(p));
-    yyfree(reinterpret_cast<void*>(p), context);
+    if (reinterpret_cast<uint64_t>(context) != std::get<1>(p)) continue;
+    W("LEAK: %p\n", reinterpret_cast<void*>(std::get<0>(p)));
+    yyfree(reinterpret_cast<void*>(std::get<0>(p)), context);
   }
 }
 
@@ -124,8 +142,7 @@ std::string Translator::translate(std::string input) {
   parse_str(input.c_str(), reinterpret_cast<void*>(this));
   std::string result;
   result = root->getContent();
-  // TODO: get context pointer and only remove those
-  removeLeaks(nullptr);
+  removeLeaks(this);
       if (error != "") {
       result += "<div class=\"error-list\">"+error+"</div>";
     }

@@ -1,4 +1,4 @@
-FLAGS := -I/hfml/cinatra/include -DFULL_LEAK_CHECK
+FLAGS := -I/hfml/cinatra/include -DFULL_LEAK_CHECK -DNO_YY_DEBUG
 CF := -Wall -Wextra -Werror
 
 server: src/server.cpp src/translator.cpp src/hfml.o src/lex.o src/mystr.o
