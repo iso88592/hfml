@@ -19,11 +19,9 @@
 %}
 
 %option yylineno
+%option nounput noinput
 
-ASC1    [\x20-\x7a]
-ASC2    [\x7c]
-ASC3    [\x7e-\x7f]
-ASC     {ASC1}|{ASC2}|{ASC3}
+ASC     [\x20-\x7a\x7c\x7e-\x7f]
 U       [\x80-\xbf]
 U2      [\xc2-\xdf]
 U3      [\xe0-\xef]
@@ -32,7 +30,7 @@ UANY    [\n]|{ASC}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UESC    {UANY}|"\\{"|"\\}"
 
 identifier           [a-zA-Z_][a-zA-Z0-9_$]*
-literal              [{]{UESC}+[}]
+literal              "{"{UESC}+"}"
 whitespace           [ \t\r\n]*
 number               [0-9]+
 
@@ -50,6 +48,8 @@ number               [0-9]+
 {identifier}         { yylval->str = yytext; return IDENTIFIER; }
 {number}             { yylval->num = atoi(yytext); return NUMBER; }
 {literal}            { yylval->str = yytext; return LITERAL; }
+"{"                  return OPEN_STR;
+"}"                  return CLOSE_STR;
 {whitespace}         /*ignore*/
 
 %%

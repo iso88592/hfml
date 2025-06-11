@@ -45,7 +45,7 @@ extern char* concat(char* c, char* str);
 %token <str> IDENTIFIER
 %token <str> LITERAL
 %token <num> NUMBER
-%token OPEN_COMP CLOSE_COMP OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH
+%token OPEN_COMP CLOSE_COMP OPEN_CBR CLOSE_CBR OPEN_BR CLOSE_BR OPEN_PAREN CLOSE_PAREN COLON COMMA EQUALS HASH OPEN_STR CLOSE_STR
 %type <mystr> string
 
 %start start
@@ -66,7 +66,7 @@ str_internals : str_internals str_internal
 str_internal : attribute 
              | component
              | string { 
-                    char* p = mystr_to_c($1); 
+                    char* p = mystr_to_c($1);
                     append_literal(EXTRA->caller, p); 
                     free(p);
                     mystr_destroy($1); 
@@ -106,7 +106,11 @@ int parse_str(const char* str, void* p) {
     ScannerExtraData extra;
     yylex_init_extra(&extra, &scanner);
     extra.caller = p;
+#ifdef YY_DEBUG    
     yyset_debug(1, scanner);
+#else
+    yyset_debug(0, scanner);
+#endif    
     YY_BUFFER_STATE msb = yy_scan_string(str, scanner);
     yyset_lineno(1, scanner);
     int result = yyparse(scanner);

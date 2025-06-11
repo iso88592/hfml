@@ -4,6 +4,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 const int MYSTR_INITIAL_BLOCK_COUNT = 1;
 const int MYSTR_BLOCK_COUNT = 64;
@@ -20,9 +21,50 @@ struct mystr* mystr_construct() {
     return result;
 }
 
+char* escape(const char* str, int len) {
+    char* result = malloc(len+1);
+    if (len == 0) {
+        result[0] = 0;
+        return result;
+    }
+    int offset = 0;
+
+    result[offset++] = str[0];
+    for (int i = 1; i < len; i++) {
+        if (str[i] == '{' || str[i] == '}') {
+            offset--;
+        }
+        result[offset++] = str[i];
+    }
+    result[offset++] = 0;
+    return result;
+}
+
+bool hasCurly(const char* str, int count) {
+    str++;
+    while (*str != 0) {
+        if ((*str == '{')||(*str == '}'))
+            return true;
+        str++;
+        if (--count == 0)
+            return false;
+    }
+    return false;
+}
+
 struct mystr* mystr_construct_s(const char* str) {
+    int len = strlen(str);
+    assert(len >= 2);
+    assert(str[0] == '{');
+    assert(str[len-1] == '}');
     struct mystr* result = mystr_construct();
-    mystr_append_l(result, str+1, strlen(str) - 2);
+    if (hasCurly(str, len-2)) {
+        char* escaped = escape(str+1, len-2);
+        mystr_append_l(result, escaped, strlen(escaped));
+        free(escaped);
+    } else {
+        mystr_append_l(result, str+1, strlen(str) - 2);
+    }
     return result;
 }
 
