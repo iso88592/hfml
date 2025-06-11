@@ -56,14 +56,11 @@ start: components
 
 string: LITERAL { $$ = mystr_construct_s($1); }
 
-components : component components |
+components : components component |
            |
 
-component_create: OPEN_COMP { create_tag(EXTRA->caller); }
-component_close: CLOSE_COMP { pop_tag(EXTRA->caller); }
-
-component : component_create str_internals component_close
-str_internals : str_internal str_internals
+component : OPEN_COMP { create_tag(EXTRA->caller); } str_internals { pop_tag(EXTRA->caller); } CLOSE_COMP
+str_internals : str_internals str_internal
               |
 
 str_internal : attribute 
@@ -77,7 +74,7 @@ str_internal : attribute
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
 
-attribute_modifiers : COLON attribute_modifier attribute_modifiers
+attribute_modifiers : COLON attribute_modifiers attribute_modifier
                     |
 
 attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
@@ -87,13 +84,15 @@ attribute_modifier : event
                    | NUMBER
 
 event : IDENTIFIER params {  }
-params : OPEN_PAREN str_comma CLOSE_PAREN 
+params : OPEN_PAREN param_list CLOSE_PAREN 
        | EQUALS string
        |
 
-str_comma : string 
-          | HASH IDENTIFIER
-          | string COMMA str_comma 
+param_list : param
+           | param_list COMMA param
+
+param : string 
+      | HASH IDENTIFIER
 
 %%
 void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* s) {
