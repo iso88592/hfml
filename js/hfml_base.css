@@ -1,0 +1,29 @@
+/* Base components for HFML to HTML conversion. */
+
+@import url('https://fonts.cdnfonts.com/css/belgiano-serif');
+
+:root {
+  --control-bg: rgb(190, 190, 190);
+  --control-fg: rgb(12, 12, 12);
+}
+
+
+
+/* We only care about code that has been marked with hfml class and everything under that. */
+.hfml {
+    background-color: var(--control-bg);
+    color: var(--control-fg);
+    font-family: 'Belgiano Serif', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+
+    a {
+        color: rgb(29, 13, 104);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    p {
+        text-align: justify;
+    }
+}
