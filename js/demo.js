@@ -1,3 +1,10 @@
+function processLinks(text) {
+    text = text.replace(/href=(['"])(.*?)\1/g, function(match, quote, url) {
+        return `href="#" onclick="clickHfml('${url.replace(/'/g, "\\'")}')"`;
+    });
+    return text;
+}
+
 
 async function load(path) {
     let start = new Date();
@@ -5,7 +12,7 @@ async function load(path) {
     let b1 = new Date();
     const text = await response.text();
     let b2 = new Date();
-    const converted = await convert(text);
+    const converted = processLinks(await convert(text));
     let end = new Date();
     document.getElementById("source").innerText = text;
     document.getElementById("display").innerHTML = converted;
@@ -26,3 +33,16 @@ function changeTheme() {
     document.body.classList.toggle("dark");
     document.body.classList.toggle("light");
 }
+
+function clickHfml(path) {
+    load(path);
+}
+
+function hfml_show(obj) {
+    console.log("Showing item");
+}
+
+function hfml_hide(obj) {
+    console.log("Hiding item");
+}
+

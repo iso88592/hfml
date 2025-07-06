@@ -1,10 +1,10 @@
-<[window][pos:center][#greeter][hidden]
+<[window:pos=align({center})][#greeter][hidden]
     <[title]{Greetings}>
     <[split:2]
-        <[button][primary][click:hide(#greeter)]{Ok}>
-        <[button][cancel][click:hide(#greeter)]{Cancel}>
+        <[button][primary:click=hide(#greeter)]{Ok}>
+        <[button][cancel:click=hide(#greeter)]{Cancel}>
     >
 >
 <
-    <[button][click:show(#greeter)]{Say hello!}>
+    <[button:click=show(#greeter)]{Say hello!}>
 >

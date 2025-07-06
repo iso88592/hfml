@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <set>
+#include <cassert>
 
 std::set<std::tuple<uint64_t,uint64_t>> mems;
 std::set<std::tuple<uint64_t,uint64_t>> static_mems;
@@ -96,12 +97,39 @@ void pop_tag(void* p) {
 void append_attribute(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->appendAttribute(str);
 }
+void append_attribute_id(void* p, const char* str) {
+  reinterpret_cast<Translator*>(p)->appendAttributeId(str);
+}
 void append_literal(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->appendLiteral(str);
 }
 void report_error(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->reportError(str);
 }
+void add_event(void* p) {
+  reinterpret_cast<Translator*>(p)->addEvent(); 
+  reinterpret_cast<Translator*>(p)->deleteList(); 
+}
+void create_list(void* p) {
+  reinterpret_cast<Translator*>(p)->createList(); 
+}
+void append_list(void* p, const char* item) {
+  reinterpret_cast<Translator*>(p)->appendList(item); 
+}
+void append_list_id(void* p, const char* item) {
+  reinterpret_cast<Translator*>(p)->appendListId(item); 
+}
+void store_name(void* p, const char* n) {
+  reinterpret_cast<Translator*>(p)->storeName(n); 
+}
+void store_event_handler(void* p, const char* str) {
+  reinterpret_cast<Translator*>(p)->storeEventHandler(str); 
+}
+
+const char* get_error_context(void* p, int line, int col) {
+  return reinterpret_cast<Translator*>(p)->getErrorContext(line, col);
+}
+
 
 char* myitoa(int i) {
   char c[33];
@@ -134,6 +162,7 @@ std::string Translator::translate(std::string input) {
   #ifdef USE_TRANSLATE_MUTEX
     std::lock_guard<std::mutex> lock(translating);
   #endif
+  inputText = input;
   error = "";
   root = new Tag();
   currentTag = root;
@@ -149,6 +178,17 @@ std::string Translator::translate(std::string input) {
   return result;
 }
 
+const char* Translator::getErrorContext(int line, int /* unused */) {
+  ssize_t from = 0;
+  ssize_t pos = inputText.find('\n', 0);
+  for (int i = 1; i < line; i++) {
+    from = pos + 1;
+    pos = inputText.find('\n', from);
+  }
+  return strdup(inputText.substr(from, pos-from).c_str());
+}
+
+
 void Translator::createTag() {
   Tag* newTag = new Tag();
   currentTag->addChild(newTag);
@@ -163,8 +203,57 @@ void Translator::appendAttribute(const char* str) {
   currentTag->addAttribute(std::string{str});
 }
 
+void Translator::appendAttributeId(const char* str) {
+  std::string s = "id=\"";
+  s += str;
+  s += "\"";
+  currentTag->addEvent(s, "", {});
+}
+
+
 void Translator::appendLiteral(const char* str) {
   currentTag->addLiteral(std::string{str});
+}
+
+void Translator::addEvent() {
+  if (storedEventHandler == "show") {
+    storedEventHandler = "hfml_show";
+  }
+  if (storedEventHandler == "hide") {
+    storedEventHandler = "hfml_hide";
+  }
+  if (storedName == "nav") {
+    storedName = "href";
+  }  
+  currentTag->addEvent(storedName, storedEventHandler, currentList);
+  storedName = "";
+}
+
+void Translator::createList() {
+  currentList.clear();
+}
+void Translator::deleteList() {
+  currentList.clear();
+}
+void Translator::appendList(const char* str) {
+  std::string s = "\"";
+  s += str;
+  s += "\"";
+  currentList.push_back(s);
+}
+void Translator::appendListId(const char* str) {
+  std::string s = "document.getElementById(\"";
+  s+=str;
+  s+="\")";
+  currentList.push_back(s);
+}
+
+void Translator::storeName(const char* str) {
+  storedName = str;
+}
+
+void Translator::storeEventHandler(const char* str) {
+  storedEventHandler = str;
 }
 
 void Translator::reportError(const char* str) {
@@ -178,7 +267,8 @@ Tag* Tag::getParent() {
 
 void Tag::addAttribute(std::string str) {
   if (isEvent(str)) {
-    addEvent(str);
+    assert(false);
+    addEvent(str, "", std::list<std::string>());
     return;
   } 
   attr = str;
@@ -188,8 +278,20 @@ bool Tag::isEvent(std::string str) {
   if (str == "click") return true;
   return false;
 }
-void Tag::addEvent(std::string /*unused*/) {
-
+void Tag::addEvent(std::string str, std::string eventName, std::list<std::string> list) {
+  if (str == "click") {
+    modifiers.push_back("onclick='"+eventName+"(");
+    modifiers.push_back(list.front());
+    modifiers.push_back(")'");
+    list.clear();
+  } else {
+    if (list.size() > 0) {
+      for (std::string item : list) {
+        str += "=\"" + item + "\"";
+      }
+    }
+    modifiers.push_back(str);
+  }
 }
 
 void Tag::addLiteral(std::string str) {
@@ -213,7 +315,16 @@ std::string TextTag::getContent() {
 
 
 std::string Tag::getContent() {
-    std::string result = "<"+attr+">";
+    std::string result = "<"+attr;
+    for (auto str : modifiers) {
+      result += " " + str;
+    }
+#ifdef DEBUG    
+    result += " data-debug-child-count=\"";
+    result += myitoa(children.size());
+    result += "\"";
+#endif    
+    result += ">";
     for (auto v : children) {
         result += v->getContent();
     }

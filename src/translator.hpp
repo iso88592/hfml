@@ -13,13 +13,14 @@ class Tag {
     void addLiteral(std::string str);
     void addChild(Tag* child);
     bool isEvent(std::string str);
-    void addEvent(std::string str);
+    void addEvent(std::string str, std::string eventName, std::list<std::string> list);
     Tag* getParent();
     virtual std::string getContent();
   private:
     Tag* parent;
     std::list<Tag*> children;
     std::string attr;
+    std::list<std::string> modifiers;
 };
 
 class TextTag: public Tag {
@@ -39,14 +40,27 @@ class Translator {
     std::string translate(std::string input);
     void createTag();
     void appendAttribute(const char* str);
+    void appendAttributeId(const char* str);
     void appendLiteral(const char* str);
     void reportError(const char* str);
+    void addEvent(/*stored name*/);
+    void createList();
+    void deleteList();
+    void appendList(const char* str);
+    void appendListId(const char* str);
     void popTag();
+    void storeName(const char* str);
+    void storeEventHandler(const char* str);
+    const char* getErrorContext(int line, int col);
   private:
     Tag* currentTag;
     Tag* root;
     std::mutex translating;
     std::string error;
+    std::list<std::string> currentList;
+    std::string storedName;
+    std::string inputText;
+    std::string storedEventHandler;
 };
 
 #endif

@@ -32,7 +32,15 @@ extern void reset_phase();
 extern void create_tag(void* p);
 extern void pop_tag(void* p);
 extern void append_attribute(void* p, const char* str);
+extern void append_attribute_id(void* p, const char* str);
 extern void append_literal(void* p, const char* str);
+extern void add_event(void* p);
+extern void create_list(void* p);
+extern void append_list(void* p, const char* item);
+extern void append_list_id(void* p, const char* item);
+extern void store_name(void* p, const char* str);
+extern void store_event_handler(void* p, const char* str);
+extern const char* get_error_context(void* p, int line, int col);
 extern char* myitoa(int i);
 extern void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 extern YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
@@ -78,30 +86,39 @@ str_internal : attribute
 
 attribute : OPEN_BR attribute_selector attribute_modifiers CLOSE_BR
 
-attribute_modifiers : COLON attribute_modifiers attribute_modifier
+attribute_modifiers : attribute_modifiers COLON  attribute_modifier
                     |
 
 attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
-                   | HASH IDENTIFIER { append_literal(EXTRA->caller, $2); }
+                   | HASH IDENTIFIER { append_attribute_id(EXTRA->caller, $2); }
 
 attribute_modifier : event
                    | NUMBER
 
-event : IDENTIFIER params {  }
-params : OPEN_PAREN param_list CLOSE_PAREN 
-       | EQUALS string
+event : IDENTIFIER { store_name(EXTRA->caller, $1); } EQUALS params { add_event(EXTRA->caller); }
+
+params : IDENTIFIER { store_event_handler(EXTRA->caller, $1); } OPEN_PAREN { create_list(EXTRA->caller); } param_list CLOSE_PAREN 
        |
 
 param_list : param
            | param_list COMMA param
 
-param : string 
-      | HASH IDENTIFIER
+param : string { 
+        char* p = mystr_to_c($1);
+        append_list(EXTRA->caller, p); 
+        free(p);
+        mystr_destroy($1); 
+    }
+      | HASH IDENTIFIER {
+        append_list_id(EXTRA->caller, $2);
+      }
 
 %%
 void yyerror(YYLTYPE* yyllocp, yyscan_t scanner, const char* s) {
     char buffer[1024];
-    snprintf(buffer, 1023, "Error: %s at line %d:%d near `%s'", s, yyllocp->first_line, yyllocp->first_column , "??");
+    char* line = get_error_context(EXTRA->caller, yyllocp->first_line, yyllocp->first_column);
+    snprintf(buffer, 1023, "Error: %s at line %d:%d near `%s'", s, yyllocp->first_line, yyllocp->first_column , line);
+    free(line);
     report_error(EXTRA->caller, buffer);
 }
 
