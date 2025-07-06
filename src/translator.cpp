@@ -125,6 +125,9 @@ void store_name(void* p, const char* n) {
 void store_event_handler(void* p, const char* str) {
   reinterpret_cast<Translator*>(p)->storeEventHandler(str); 
 }
+void append_modifier_number(void* p, int z) {
+  reinterpret_cast<Translator*>(p)->appendModifierNumber(z); 
+}
 
 const char* get_error_context(void* p, int line, int col) {
   return reinterpret_cast<Translator*>(p)->getErrorContext(line, col);
@@ -248,6 +251,11 @@ void Translator::appendListId(const char* str) {
   currentList.push_back(s);
 }
 
+void Translator::appendModifierNumber(int z) {
+  currentTag->addNumber(z);
+}
+
+
 void Translator::storeName(const char* str) {
   storedName = str;
 }
@@ -265,12 +273,24 @@ Tag* Tag::getParent() {
   return parent;
 }
 
+bool isNumeric(std::string str) {
+  if (str.length() == 0) return false;
+  for (size_t i = 0; i < str.length(); i++) {
+    if (str[i] < '0') return false;
+    if (str[i] > '9') return false;
+  }
+  return true;
+}
+
+void Tag::addNumber(int z) {
+  modifiers.push_back(std::to_string(z));
+}
+
 void Tag::addAttribute(std::string str) {
-  if (isEvent(str)) {
-    assert(false);
-    addEvent(str, "", std::list<std::string>());
+  if (str == "hidden" || str == "window" || str == "title" || str == "split" || str == "primary" || str == "secondary" || str == "cancel" || str == "center") {
+    modifiers.push_back("class=\""+str+"\"");
     return;
-  } 
+  }
   attr = str;
 }
 
@@ -279,7 +299,12 @@ bool Tag::isEvent(std::string str) {
   return false;
 }
 void Tag::addEvent(std::string str, std::string eventName, std::list<std::string> list) {
-  if (str == "click") {
+  if (str == "pos") {
+    modifiers.push_back("class=\"pos-"+eventName+"\"");
+    list.clear();
+  } else if (str == "drag") {
+    modifiers.push_back("onmousedown='hfml_start_drag_" + eventName + "(event, " + list.front() + ")'");
+  } else if (str == "click") {
     modifiers.push_back("onclick='"+eventName+"(");
     modifiers.push_back(list.front());
     modifiers.push_back(")'");
@@ -315,9 +340,37 @@ std::string TextTag::getContent() {
 
 
 std::string Tag::getContent() {
+    if (attr == "h") {
+      for (auto str : modifiers) {
+        if (isNumeric(str)) {
+          attr += str;
+          break;
+        }
+      }
+    }
     std::string result = "<"+attr;
+    std::list<std::string> classes;
     for (auto str : modifiers) {
+      if (isNumeric(str)) continue;
+      if (str.starts_with("class=")) {
+        classes.push_back(str.substr(7, str.length() - 8));
+        if (str == "class=\"split\"") {
+          for (auto s : modifiers) {
+            if (!isNumeric(s)) continue;
+            classes.push_back("split-" + s);
+          }
+        }
+        continue;
+      }
       result += " " + str;
+    }
+    if (classes.size() > 0) {
+      result +=" class=\"";
+      for (auto c : classes) {
+        result += c;
+        result += " ";
+      }
+      result +="\"";
     }
 #ifdef DEBUG    
     result += " data-debug-child-count=\"";

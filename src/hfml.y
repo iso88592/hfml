@@ -34,6 +34,7 @@ extern void pop_tag(void* p);
 extern void append_attribute(void* p, const char* str);
 extern void append_attribute_id(void* p, const char* str);
 extern void append_literal(void* p, const char* str);
+extern void append_modifier_number(void* p, int z);
 extern void add_event(void* p);
 extern void create_list(void* p);
 extern void append_list(void* p, const char* item);
@@ -93,7 +94,7 @@ attribute_selector : IDENTIFIER { append_attribute(EXTRA->caller, $1); }
                    | HASH IDENTIFIER { append_attribute_id(EXTRA->caller, $2); }
 
 attribute_modifier : event
-                   | NUMBER
+                   | NUMBER { append_modifier_number(EXTRA->caller, $1); }
 
 event : IDENTIFIER { store_name(EXTRA->caller, $1); } EQUALS params { add_event(EXTRA->caller); }
 

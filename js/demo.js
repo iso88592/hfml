@@ -39,10 +39,68 @@ function clickHfml(path) {
 }
 
 function hfml_show(obj) {
-    console.log("Showing item");
+    obj.classList.remove("hidden");
 }
 
 function hfml_hide(obj) {
-    console.log("Hiding item");
+    obj.classList.add("hidden");
 }
 
+function hfml_start_drag_move(e, obj) {
+    window.dragged_element = obj;
+    obj.start_x = e.pageX;
+    obj.start_y = e.pageY;
+    obj.dragged = true;
+    const computedStyle = window.getComputedStyle(obj);
+    obj.drag_left = parseInt(computedStyle.left, 10) || 0;
+    obj.drag_top  = parseInt(computedStyle.top, 10) || 0;    
+}
+function hfml_stop_drag_move(e) {
+    if (window.dragged_element == null) return;
+    window.dragged_element.dragged = false;
+    window.dragged_element = null;
+}
+function hfml_move_drag_move(e) {
+    const obj = window.dragged_element;
+    if (!obj) return;
+
+    const dx = e.pageX - obj.start_x;
+    const dy = e.pageY - obj.start_y;
+
+    obj.drag_left += dx;
+    obj.drag_top  += dy;
+
+    const parent = obj.offsetParent || document.body;
+    const parentRect = parent.getBoundingClientRect();
+    const style = window.getComputedStyle(obj);
+
+    const marginLeft   = parseInt(style.marginLeft)   || 0;
+    const marginTop    = parseInt(style.marginTop)    || 0;
+    const marginRight  = parseInt(style.marginRight)  || 0;
+    const marginBottom = parseInt(style.marginBottom) || 0;
+
+    const totalWidth  = obj.offsetWidth  + marginLeft + marginRight;
+    const totalHeight = obj.offsetHeight + marginTop  + marginBottom;
+
+    const maxLeft = parent.clientWidth  - totalWidth;
+    const maxTop  = parent.clientHeight - totalHeight;
+
+    obj.drag_left = Math.max(0, Math.min(obj.drag_left, maxLeft));
+    obj.drag_top  = Math.max(0, Math.min(obj.drag_top, maxTop));
+
+    obj.style.left = obj.drag_left + "px";
+    obj.style.top  = obj.drag_top  + "px";
+
+    obj.start_x = e.pageX;
+    obj.start_y = e.pageY;
+
+    e.preventDefault();
+}
+
+
+window.dragged_element = null;
+
+window.addEventListener("load", function() {
+    this.document.body.addEventListener("mousemove", hfml_move_drag_move);
+    this.document.body.addEventListener("mouseup", hfml_stop_drag_move);
+});

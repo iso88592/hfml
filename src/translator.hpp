@@ -12,6 +12,7 @@ class Tag {
     void addAttribute(std::string str);
     void addLiteral(std::string str);
     void addChild(Tag* child);
+    void addNumber(int z);
     bool isEvent(std::string str);
     void addEvent(std::string str, std::string eventName, std::list<std::string> list);
     Tag* getParent();
@@ -42,6 +43,7 @@ class Translator {
     void appendAttribute(const char* str);
     void appendAttributeId(const char* str);
     void appendLiteral(const char* str);
+    void appendModifierNumber(int z);
     void reportError(const char* str);
     void addEvent(/*stored name*/);
     void createList();

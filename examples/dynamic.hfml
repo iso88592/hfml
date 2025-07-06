@@ -1,5 +1,6 @@
-<[window:pos=align({center})][#greeter][hidden]
-    <[title]{Greetings}>
+<[window:pos=fixed({fill})][#greeter][hidden]
+    <[title:drag=move(#greeter)]{Greetings}>
+    <{Hope Flows / Meaning Lingers!}[p][center]>
     <[split:2]
         <[button][primary:click=hide(#greeter)]{Ok}>
         <[button][cancel:click=hide(#greeter)]{Cancel}>
