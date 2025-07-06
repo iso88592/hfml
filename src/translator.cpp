@@ -287,7 +287,7 @@ void Tag::addEvent(std::string str, std::string eventName, std::list<std::string
   } else {
     if (list.size() > 0) {
       for (std::string item : list) {
-        str += "=\"" + item + "\"";
+        str += "=" + item + "";
       }
     }
     modifiers.push_back(str);
