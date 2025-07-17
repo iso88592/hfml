@@ -8,6 +8,8 @@
   --control-bg: rgb(190, 190, 190);
   --control-fg: rgb(12, 12, 12);
   --control-padding: 8px;
+  --window-border-radius: 6px;
+  --window-border-size: 2px;
 }
 
 :root .dark {
@@ -40,11 +42,12 @@
         z-index: 1;
         background-color: var(--control-bg);
         color: var(--control-fg);
-        border: 2px solid var(--control-3d-shadow);
+        border: var(--window-border-size) solid var(--control-3d-shadow);
         border-top-color: var(--control-3d-highlight);
         border-left-color: var(--control-3d-highlight);
         padding: var(--control-padding);
         box-shadow: 3px 3px 3px rgba(0, 0, 0, 25%);
+        border-radius: var(--window-border-radius);
     }
 
     .title {
@@ -55,6 +58,9 @@
         color: white;
         font-weight: bold;   
         user-select: none;
+
+        border-top-left-radius: calc(var(--window-border-radius) - var(--window-border-size));
+        border-top-right-radius: calc(var(--window-border-radius) - var(--window-border-size));
     }
 
     .hidden {
@@ -102,4 +108,9 @@
     .pos-fixed {
         position: fixed;
     }    
+
+    button.disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
 }

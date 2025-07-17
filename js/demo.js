@@ -2,6 +2,7 @@ function processLinks(text) {
     text = text.replace(/href=(['"])(.*?)\1/g, function(match, quote, url) {
         return `href="#" onclick="clickHfml('${url.replace(/'/g, "\\'")}')"`;
     });
+    
     return text;
 }
 
@@ -104,3 +105,32 @@ window.addEventListener("load", function() {
     this.document.body.addEventListener("mousemove", hfml_move_drag_move);
     this.document.body.addEventListener("mouseup", hfml_stop_drag_move);
 });
+
+function processEvent(str) {
+    if (str.includes("[event:")) {
+        
+    }
+    if (str.includes("[error]")) {
+        alert(str.replace(/.*{([^}]*)}.*/,"$1"));
+    }
+}
+
+async function request(event, rq) {
+    if (event.target.classList.contains("disabled")) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
+    event.target.classList.add("disabled");
+    try {
+        const ctx = event.target.closest("context");
+        const bind =ctx.getAttribute("bind");
+        const request = bind + rq;
+        const response = await fetch(request);
+        const value = await response.text();
+        processEvent(value);
+    } catch (e) {
+        alert(e);
+    }
+    event.target.classList.remove("disabled");
+}

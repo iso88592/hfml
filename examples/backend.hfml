@@ -1,0 +1,5 @@
+<[context:bind=path({http://127.0.0.1:3273})]
+  <[button:click=request({/hello})]{Say hello!}>
+  <[button:click=request({/error})]{Make error!}>
+  <[button:click=request({/long})]{Say in 10 seconds!}>
+>

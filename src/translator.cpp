@@ -219,6 +219,9 @@ void Translator::appendLiteral(const char* str) {
 }
 
 void Translator::addEvent() {
+  if (storedEventHandler == "request") {
+    currentList.push_front("event");
+  }
   if (storedEventHandler == "show") {
     storedEventHandler = "hfml_show";
   }
@@ -306,7 +309,13 @@ void Tag::addEvent(std::string str, std::string eventName, std::list<std::string
     modifiers.push_back("onmousedown='hfml_start_drag_" + eventName + "(event, " + list.front() + ")'");
   } else if (str == "click") {
     modifiers.push_back("onclick='"+eventName+"(");
-    modifiers.push_back(list.front());
+    int count = 0;
+    for (std::string item : list) {
+      if (count++ >= 1) {
+        modifiers.push_back(", ");
+      }
+      modifiers.push_back(item);
+    }
     modifiers.push_back(")'");
     list.clear();
   } else {
