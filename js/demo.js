@@ -106,9 +106,37 @@ window.addEventListener("load", function() {
     this.document.body.addEventListener("mouseup", hfml_stop_drag_move);
 });
 
+function popupError(str) {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.classList.add("error");
+    toast.textContent = str;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(()=>{
+        toast.classList.remove("show");
+        toast.addEventListener("transitionend", () => toast.remove());
+    }, 3000);    
+}
+
+function popupInfo(str) {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.classList.add("info");
+    toast.textContent = str;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(()=>{
+        toast.classList.remove("show");
+        toast.addEventListener("transitionend", () => toast.remove());
+    }, 3000);    
+}
+/*<[event:effect=alert({Hello, world!})]>*/
 function processEvent(str) {
     if (str.includes("[event:")) {
-        
+        popupInfo(str);
     }
     if (str.includes("[error]")) {
         alert(str.replace(/.*{([^}]*)}.*/,"$1"));
@@ -130,7 +158,11 @@ async function request(event, rq) {
         const value = await response.text();
         processEvent(value);
     } catch (e) {
-        alert(e);
+        popupError(e);
     }
     event.target.classList.remove("disabled");
+}
+
+function toggleFullscreen() {
+    document.getElementById("display").classList.toggle("full");
 }

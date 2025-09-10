@@ -6,5 +6,8 @@ src/hfml.tab.c
 src/hfml.tab.h
 src/hfml.o
 src/lex.o
+src/hfml.json
+
+js/parser
 
 deps

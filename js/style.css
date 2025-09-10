@@ -17,6 +17,19 @@ div.one {
     }        
 }
 
+#display.full {
+    position: absolute;
+    left: 0;
+    top:0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+#source {
+    font-family: 'Courier New', Courier, monospace;
+}
+
 .groupbox {
     display: inline-block;
     border: 2px solid black;
@@ -55,3 +68,36 @@ span.code {
     color: red;
 }
 
+#toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 9999;
+}
+
+.toast {
+    background-color: #056bbf;
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.toast.error {
+    background-color: #bf2105;
+}
+
+.toast.info {
+    background-color: #0511bf;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
