@@ -27,17 +27,15 @@ function tokenize(str) {
 function parse(str) {
     console.debug("==================");
     console.debug("Parsing `" + str + "`");
-    let tokens = tokenize(str);
+    const tokens = tokenize(str);
     let stateStack = [0];
     let symbolStack = [];
     let valueStack = [];
     let pos = 0;
 
-    let count = 0;
-    while (count < 100) {
-        count++;
-        let state = stateStack[stateStack.length - 1];
-        let token = tokens[pos];
+    while (true) {
+        const state = stateStack[stateStack.length - 1];
+        const token = tokens[pos];
 
         console.debug(`State ${state}, token ${token[0]}`);
 
@@ -66,21 +64,20 @@ function parse(str) {
             pos++;
             
         } else {
-            let rule = -action;
-            let lhs = parserInfo.yyr1[rule];
-            let rhsLen = parserInfo.yyr2[rule];
+            const rule = -action;
+            const lhs = parserInfo.yyr1[rule];
+            const rhsLen = parserInfo.yyr2[rule];
 
             console.debug(`reduce by rule ${rule}, pop ${rhsLen}`);
             let children = [];
-            for (let i = 0; i < rhsLen; i++) {
-                stateStack.pop();
-                symbolStack.pop();
-                children.unshift(valueStack.pop());
-            }
 
-            let top = stateStack[stateStack.length - 1];
-            let gotoIndex = parserInfo.yypgoto[lhs - parserInfo.yyntokens] + top;
-            let gotoState = (gotoIndex >= 0 && gotoIndex < parserInfo.yytable.length &&
+            stateStack.splice(-rhsLen);
+            symbolStack.splice(-rhsLen);
+            children = valueStack.splice(-rhsLen, rhsLen);
+
+            const top = stateStack[stateStack.length - 1];
+            const gotoIndex = parserInfo.yypgoto[lhs - parserInfo.yyntokens] + top;
+            const gotoState = (gotoIndex >= 0 && gotoIndex < parserInfo.yytable.length &&
                 parserInfo.yycheck[gotoIndex] === top) ?
                 parserInfo.yytable[gotoIndex] :
                 parserInfo.yydefgoto[lhs - parserInfo.yyntokens];
