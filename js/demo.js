@@ -155,6 +155,26 @@ function processLinks(text) {
     return text;
 }
 
+async function pumpInitEvents() {
+    const elems = document.getElementsByTagName("context");
+    for (elem of elems) {
+        const session = elem.getAttribute("session");
+        if (session != null) {
+            const bind = elem.getAttribute("bind");
+            try {
+                const request = bind;
+                const response = await fetch(request, {method: "PUT", body: JSON.stringify({session: session})});
+                if (!response?.ok) {
+                    throw new Error(`Unable to process request. Status code: ${response?.status} `);
+                }
+                const value = await response.text();
+            } catch (e) {
+            popupError(e);
+            }
+        }
+    }
+}
+
 
 async function load(path) {
     let start = new Date();
@@ -170,6 +190,7 @@ async function load(path) {
     document.getElementById("specs").innerText = "Page generated in " + (end.getTime() - start.getTime()) + " ms" + 
     " Fetch time: " + (b1.getTime() - start.getTime()) + " ms" + 
     " Conversion time: " + (end.getTime() - b2.getTime()) + " ms";
+    await pumpInitEvents();
 }
 
 async function displayText() {
@@ -266,7 +287,7 @@ function popupError(str) {
     setTimeout(()=>{
         toast.classList.remove("show");
         toast.addEventListener("transitionend", () => toast.remove());
-    }, 3000);    
+    }, 3000);
 }
 
 function popupInfo(str) {
@@ -280,7 +301,7 @@ function popupInfo(str) {
     setTimeout(()=>{
         toast.classList.remove("show");
         toast.addEventListener("transitionend", () => toast.remove());
-    }, 3000);    
+    }, 3000);
 }
 
 function findTag(ast, tagName) {
@@ -337,9 +358,13 @@ async function request(event, rq) {
     event.target.classList.add("disabled");
     try {
         const ctx = event.target.closest("context");
+        const session = ctx.getAttribute("session");
         const bind =ctx.getAttribute("bind");
         const request = bind + rq;
         const response = await fetch(request);
+        if (!response?.ok) {
+            throw new Error(`Unable to process request. Status code: ${response?.status} `);
+        }
         const value = await response.text();
         processEvent(value);
     } catch (e) {
