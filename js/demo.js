@@ -168,6 +168,7 @@ async function pumpInitEvents() {
                     throw new Error(`Unable to process request. Status code: ${response?.status} `);
                 }
                 const value = await response.text();
+                processEvent(value);
             } catch (e) {
             popupError(e);
             }
@@ -304,6 +305,10 @@ function popupInfo(str) {
     }, 3000);
 }
 
+function hfml_alert(str) {
+    popupInfo(str);
+}
+
 function findTag(ast, tagName) {
     let result = [];
     if (ast.type === 29) {
@@ -331,14 +336,57 @@ function extractText(ast) {
     return result;
 }
 
+function getEffect(ast) {
+    let result = [];
+    if (ast.type === 33) {
+        let identifier = ast.children[0][1];
+        if (identifier === "effect") {
+            result.push(ast.children[2]);
+        }
+    }
+    for (let child in ast.children) {
+        let other = getEffect(ast.children[child]);
+        result = result.concat(other);
+    }
+    return result;
+}
+
 
 function processEvent(str) {
     const ast = collapseSingleChild(pruneEpsilon(parse(str)));
-    console.log(ast);
 
     let events = findTag(ast, "event");
     if (events.length != 0) {
-        popupInfo(extractText(ast));
+        for (ev in events) {
+            let effects = getEffect(events[ev]);
+            for (e in effects) {
+                let effectName = effects[e].children[0][1];
+                // TODO: effects should be flattened in the AST.
+                if (effectName === "session") {
+                    // TODO: send session logout on navigating
+                    continue;
+                }
+                if (effectName === "show") {
+                    const str = effects[e].children[2].children[0][1];
+                    const element = document.getElementById(str.substring(2, str.length - 1));
+                    hfml_show(element);
+                    continue;
+                }
+                if (effectName === "alert") {
+                    const str = effects[e].children[2].children[0][1];
+                    popupInfo(str.substring(1,str.length-1));
+                    continue;
+                }
+                if (effectName === "setText") {
+                    const str = effects[e].children[2].children[0].children[0][1];
+                    const element = document.getElementById(str.substring(2, str.length - 1));
+                    const rstr = effects[e].children[2].children[2].children[0][1];
+                    element.innerHTML = rstr.substring(1, rstr.length - 1);
+                    continue;
+                }
+                popupError(`Unable to handle effect: ${effectName}`);
+            }
+        }
         return;
     }
     let errors = findTag(ast, "error");

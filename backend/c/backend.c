@@ -21,6 +21,7 @@ void calculator_session_created(HFMLContext * context, HFMLSession* session) {
     session->createValue(session, "result", sizeof(int));
     int value = 0;
     session->setValue(session, "result", &value);
+    context->trigger_event(context, "show", "#calculator");
 }
 void calculator_session_deleted(HFMLContext * context) {
 }
@@ -110,11 +111,11 @@ void calculator(HFMLContext * context) {
     }
 
     int result;
-    char rstring[20];
+    char rstring[40];
     session->getValue(session, "result", &result);
-    snprintf(rstring, 19, "%d",result);
+    snprintf(rstring, 39, "#calculator_display},{%d",result);
 
-    context->trigger_event(context, "calulator", rstring);
+    context->trigger_event(context, "setText", rstring);
 }
 
 HFML_REGISTER_CONTROLLER(example_backend) {

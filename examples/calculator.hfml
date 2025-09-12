@@ -1,4 +1,4 @@
-<[window:pos=fixed({fill})][#calculator]
+<[window:pos=fixed({fill})][#calculator][hidden]
 <[title:drag=move(#calculator)]{Calculator}>
 <[#calculator_display]{0}>
 <[split:5][context:bind=path({http://127.0.0.1:3273/calc}):session=open({calculator})]

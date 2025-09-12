@@ -228,9 +228,12 @@ void Translator::addEvent() {
   if (storedEventHandler == "hide") {
     storedEventHandler = "hfml_hide";
   }
+  if (storedEventHandler == "alert") {
+    storedEventHandler = "hfml_alert";
+  }
   if (storedName == "nav") {
     storedName = "href";
-  }  
+  }
   currentTag->addEvent(storedName, storedEventHandler, currentList);
   storedName = "";
 }

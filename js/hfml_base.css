@@ -50,6 +50,8 @@
         padding: var(--control-padding);
         box-shadow: 3px 3px 3px rgba(0, 0, 0, 25%);
         border-radius: var(--window-border-radius);
+        top: 15px;
+        left: 15px;
     }
 
     .title {

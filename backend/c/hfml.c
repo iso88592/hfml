@@ -60,9 +60,9 @@ typedef struct hfml_route {
 struct hfml_linked *first = NULL;
 
 void trigger_event(struct HFMLContext* context, const char* event, const char* payload) {
-  free(context->link->response);
   char buffer[BUF_SIZE];
-  snprintf(buffer, 4096, "<[event:effect=%s({%s})]>", event, payload);
+  snprintf(buffer, 4096, "%s<[event:effect=%s({%s})]>",context->link->response, event, payload);
+  free(context->link->response);
   context->link->response = strdup(buffer);
 }
 void raise_error(struct HFMLContext* context, const char* message) {
@@ -76,7 +76,6 @@ void process_route_regex(hfml_route* r) {
     const char* src = r->name;
     size_t len = strlen(src);
 
-    // worst-case allocate enough space for regex
     char* regex_buf = malloc(len * 2 + 10); 
     strcpy(regex_buf, "^");
 
@@ -87,24 +86,20 @@ void process_route_regex(hfml_route* r) {
         if (src[i] == '{') {
             size_t j = i + 1;
             while (j < len && src[j] != '}') j++;
-            if (j >= len) break; // malformed
+            if (j >= len) break; 
 
-            // extract param name
             size_t plen = j - (i + 1);
             char* pname = malloc(plen + 1);
             strncpy(pname, src + i + 1, plen);
             pname[plen] = '\0';
 
-            // append to parts list
             parts = realloc(parts, sizeof(char*) * (parts_count + 1));
             parts[parts_count++] = pname;
 
-            // add regex capture
             strcat(regex_buf, "([^/]+)");
 
-            i = j; // skip past '}'
+            i = j;
         } else {
-            // copy literal, escape regex specials
             if (strchr(".^$|()[]*+?\\", src[i])) {
                 size_t l = strlen(regex_buf);
                 regex_buf[l] = '\\';
@@ -167,7 +162,7 @@ void create_session(struct HFMLContext * context) {
   HFMLSession* session = context->createSession(context, context->getSessionName(context));
   hfml_route* route = context->link->currentRoute;
   if (route->session_created != NULL) route->session_created(context, session);
-  context->trigger_event(context, "session", "Session deleted successfully.");
+  context->trigger_event(context, "session", "Session created successfully.");
 }
 void delete_session(struct HFMLContext * context) {
   context->deleteSession(context, context->getSessionName(context));
@@ -369,7 +364,7 @@ char* hfml_process_request(const char* request) {
             current->context->addParam(current->context, c->regex_parts[i], v);
             current->context->paramCount++;
           }
-          current->response = strdup("<[error]{The controller did not provide an answer.}>");
+          current->response = strdup("");
           c->invoke(current->context);
           char buffer[BUF_SIZE];
           snprintf(buffer, 4096, "%s %d\r\n\r\n%s",
