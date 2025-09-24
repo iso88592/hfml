@@ -21,7 +21,8 @@ void calculator_session_created(HFMLContext * context, HFMLSession* session) {
     session->createValue(session, "result", sizeof(int));
     int value = 0;
     session->setValue(session, "result", &value);
-    context->trigger_event(context, "show", "#calculator");
+    context->trigger_event(context, "show", "#calculator_content");
+    context->trigger_event(context, "hide", "#calculator_loading");
 }
 void calculator_session_deleted(HFMLContext * context) {
 }

@@ -12,6 +12,6 @@ async function convert(text) {
         const value = await response.text();
         return value;
     } catch (error) {
-        return "error: " + error;
+        return `Unable to connect to ${convertApi}! Please start the HFML backend!`;
     }
 }

@@ -155,11 +155,16 @@ function processLinks(text) {
     return text;
 }
 
-async function pumpInitEvents() {
-    const elems = document.getElementsByTagName("context");
-    for (elem of elems) {
-        const session = elem.getAttribute("session");
-        if (session != null) {
+
+function sleep(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+async function try_session(session) {
+    if (session != null) {
+        let retries = 3;
+        while (retries > 0) {
+            retries--;
             const bind = elem.getAttribute("bind");
             try {
                 const request = bind;
@@ -169,10 +174,27 @@ async function pumpInitEvents() {
                 }
                 const value = await response.text();
                 processEvent(value);
+                return;
             } catch (e) {
-            popupError(e);
+                popupError(e);
+                await sleep(1000);
             }
         }
+        popupError("Unable to create session.");
+        processEvent(`<[event:session=timeout({$session})]>`);
+    }
+}
+
+async function retry_session(sessionName) {
+    await try_session(document.querySelector(`context[session="${sessionName}"]`));
+}
+
+
+async function pumpInitEvents() {
+    const elems = document.getElementsByTagName("context");
+    for (elem of elems) {
+        const session = elem.getAttribute("session");
+        await try_session(session);
     }
 }
 
@@ -370,6 +392,12 @@ function processEvent(str) {
                     const str = effects[e].children[2].children[0][1];
                     const element = document.getElementById(str.substring(2, str.length - 1));
                     hfml_show(element);
+                    continue;
+                }
+                if (effectName === "hide") {
+                    const str = effects[e].children[2].children[0][1];
+                    const element = document.getElementById(str.substring(2, str.length - 1));
+                    hfml_hide(element);
                     continue;
                 }
                 if (effectName === "alert") {

@@ -1,5 +1,11 @@
-<[window:pos=fixed({fill})][#calculator][hidden]
+<[window:pos=fixed({fill})][#calculator]
 <[title:drag=move(#calculator)]{Calculator}>
+<[#calculator_loading]
+<[h1]{Loading calculator.}>
+<[p]{If the app does not load, you can try }<[button:click=retry_session({calculator})]{reloading}>{ it.}
+>
+>
+<[#calculator_content][hidden]
 <[#calculator_display]{0}>
 <[split:5][context:bind=path({http://127.0.0.1:3273/calc}):session=open({calculator})]
 <[button:click=request({/7})]{7}>
@@ -25,5 +31,6 @@
 <[button:click=request({/exp})]{EXP}>
 <[button:click=request({/ans})]{ANS}>
 <[button:click=request({/eq})]{=}>
+>
 >
 >

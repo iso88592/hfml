@@ -1,0 +1,13 @@
+<[window:pos=fixed({fill})][#chat]
+<[title:drag=move(#chat)]{Chat}>
+<[split:2][context:bind=path({http://127.0.0.1:8080/chat}):session=open({chat})]
+<[groupbox]{Users}<[list]
+<{one}><{two}><{three}>
+>>
+<[groupbox]{Chat}
+<[scrollbox][#lines]
+<{Hello world!}>
+>>
+>
+<{>}<[input]>>
+>
