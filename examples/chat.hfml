@@ -1,6 +1,6 @@
-<[window:pos=fixed({fill})][#chat]
+<[window:pos=fixed({fill})][#chat][context:bind=path({http://127.0.0.1:8080/chat}):session=open({chat})]
 <[title:drag=move(#chat)]{Chat}>
-<[split:2][context:bind=path({http://127.0.0.1:8080/chat}):session=open({chat})]
+<[split:2]
 <[groupbox]{Users}<[list]
 <{one}><{two}><{three}>
 >>
@@ -9,5 +9,5 @@
 <{Hello world!}>
 >>
 >
-<{>}<[input]>>
+<{>}<[input:placeholder=text({Tell me something})][#input_line]><[button:click=request({/say}):payload=text({#input_line})]{Send}>>
 >

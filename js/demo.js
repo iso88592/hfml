@@ -1,5 +1,6 @@
 let parserInfo = {};
 let tokenizerList = [];
+let eventQueue = [];
 
 function tokenize(str) {
     const tokens = [];
@@ -168,12 +169,12 @@ async function try_session(session) {
             const bind = elem.getAttribute("bind");
             try {
                 const request = bind;
-                const response = await fetch(request, {method: "PUT", body: JSON.stringify({session: session})});
+                const response = await fetch(request, {method: "PUT", credentials: "include", body: JSON.stringify({session: session})});
                 if (!response?.ok) {
                     throw new Error(`Unable to process request. Status code: ${response?.status} `);
                 }
                 const value = await response.text();
-                processEvent(value);
+                eventQueue.push(value);
                 return;
             } catch (e) {
                 popupError(e);
@@ -181,7 +182,7 @@ async function try_session(session) {
             }
         }
         popupError("Unable to create session.");
-        processEvent(`<[event:session=timeout({$session})]>`);
+        eventQueue.push(`<[event:session=timeout({$session})]>`);
     }
 }
 
@@ -201,7 +202,7 @@ async function pumpInitEvents() {
 
 async function load(path) {
     let start = new Date();
-    const response = await fetch("/examples/" + path);
+    const response = await fetch("/examples/" + path, {credentials: "include"});
     let b1 = new Date();
     const text = await response.text();
     let b2 = new Date();
@@ -374,7 +375,7 @@ function getEffect(ast) {
 }
 
 
-function processEvent(str) {
+async function processEvent(str) {
     const ast = collapseSingleChild(pruneEpsilon(parse(str)));
 
     let events = findTag(ast, "event");
@@ -412,6 +413,28 @@ function processEvent(str) {
                     element.innerHTML = rstr.substring(1, rstr.length - 1);
                     continue;
                 }
+                if (effectName === "hook") {
+                    const sessionNameItem = effects[e].children[2].children[0].children[0][1];
+                    const sessionName = sessionNameItem.substring(1, sessionNameItem.length - 1);
+                    const hookPathItem = effects[e].children[2].children[2].children[0][1];
+                    const hookPath = hookPathItem.substring(1, hookPathItem.length - 1);
+                    const element = document.querySelector(`context[session="${sessionName}"]`);
+                    await request({
+                        target: element, 
+                        preventDefault:function(){},
+                        stopPropagation: function() {}
+                    }, hookPath);
+                    continue;
+                }
+                if (effectName === "append") {
+                    const elemName = effects[e].children[2].children[0].children[0][1];
+                    const elem = document.getElementById(elemName.substring(2, elemName.length - 1));
+                    console.log(elem);
+                    const str = effects[e].children[2].children[2].children[0][1];
+                    elem.innerHTML+=str.substring(1, str.length - 1);
+
+                    continue;
+                }
                 popupError(`Unable to handle effect: ${effectName}`);
             }
         }
@@ -437,20 +460,33 @@ async function request(event, rq) {
         const session = ctx.getAttribute("session");
         const bind =ctx.getAttribute("bind");
         const request = bind + rq;
-        const response = await fetch(request);
+        const response = await fetch(request, {credentials: "include"});
         if (!response?.ok) {
             throw new Error(`Unable to process request. Status code: ${response?.status} `);
         }
         const value = await response.text();
-        processEvent(value);
+        event.target.classList.remove("disabled");
+        eventQueue.push(value);
     } catch (e) {
         popupError(e);
     }
     event.target.classList.remove("disabled");
 }
 
+function processEvents() {
+    while (eventQueue.length > 0) {
+        ev = eventQueue.pop();
+        console.log(ev);
+        processEvent(ev);
+    }
+    setTimeout(processEvents, 100);
+}
+
+
 function toggleFullscreen() {
     document.getElementById("display").classList.toggle("full");
 }
 
 createParser();
+
+setTimeout(processEvents, 100);
