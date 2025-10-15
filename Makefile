@@ -19,5 +19,11 @@ src/mystr.o: src/mystr.c
 src/lex.o: src/lex.yy.c
 	gcc -c -o src/lex.o src/lex.yy.c -std=c99
 
+splicestrtest: src/splicestr.h src/splicestr.c src/splicestrtest.c
+	g++ -O3 -o splicestrtest src/splicestr.c src/splicestrtest.c
+
+test: splicestrtest
+	./splicestrtest
+
 clean:
-	-rm src/hfml.tab.c src/hfml.tab.h src/hfml.o src/lex.o src/lex.yy.c src/mystr.o
+	-rm src/hfml.tab.c src/hfml.tab.h src/hfml.o src/lex.o src/lex.yy.c src/mystr.o splicestrtest

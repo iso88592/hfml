@@ -30,7 +30,7 @@ UANY    [\n]|{ASC}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 UESC    {UANY}|"\\{"|"\\}"
 
 identifier           [a-zA-Z_][a-zA-Z0-9_$]*
-literal              "{"{UESC}*"}"
+literal              "{"[^{}]*"}"
 whitespace           [ \t\r\n]*
 number               [0-9]+
 
@@ -48,8 +48,6 @@ number               [0-9]+
 {identifier}         { yylval->str = yytext; return IDENTIFIER; }
 {number}             { yylval->num = atoi(yytext); return NUMBER; }
 {literal}            { yylval->str = yytext; return LITERAL; }
-"{"                  return OPEN_STR;
-"}"                  return CLOSE_STR;
 {whitespace}         /*ignore*/
 {UANY}               { yyerror(yylloc, yyscanner, "unexpected character"); }
 %%

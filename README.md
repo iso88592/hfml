@@ -33,7 +33,7 @@ HFML is an easy to read, easy to parse HTML alternative that powers the World Wi
 HFML is built around the concept of content-first design. At its core, the format simplifies how content is expressed and interacted with on the web. Here's how it works:
  1. Content as the Primary Focus: HFML's syntax allows the content itself to be front-and-center. Components are defined in `<>` and is a recursive type, just like in HTML. You can place text content in `{}`, with metadata inside square brackets `[]` controlling how that content is rendered or behaves. For example, `<{hello world}>` just outputs "hello world" on the page.
 
- 2. Plain text is always inside `{}`, so it's easy to parse and highlight. All HFML texts must be well-formed, and everything inside `{}` are considered to be text.
+ 2. Plain text is always inside `{}`, so it's easy to parse and highlight. All HFML texts must be well-formed, and everything inside `{}` are considered to be text. The sequence is defined as *literals* from now on. **Please note:** HFML supports hex escape codes inside literals. If you want to include a `{` or `}` inside a literal, you **must** use `&#123;` and `&#125;` respectively. These escape sequences must be converted back to the corresponding ASCII characters in any frontend or backend processing. HFML lexers must accept any valid Unicode characters (including printable ASCII) that are not curly braces. 
 
  3. Simple Metadata Modifiers: Metadata is attached directly to the content using square brackets `[]`, specifying things like styles, actions, and behavior. For example:
 
