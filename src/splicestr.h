@@ -56,9 +56,9 @@ void compile_ruleset(struct ruleset* ruleset);
 void splicestr_create(const char* source, struct splicestr* str);
 void splicestr_destroy(struct splicestr* str);
 void splicestr_substr(const struct splicestr* source, SPLICESTR_INT from, SPLICESTR_INT length, struct splicestr* result);
-void create_lexer(lexer* lex, const char* input);
-void destroy_lexer(lexer* lex); 
-int get_next_token(lexer* lex, struct splicestr* splice); 
+void create_lexer(struct lexer* lex, const char* input);
+void destroy_lexer(struct lexer* lex); 
+int get_next_token(struct lexer* lex, struct splicestr* splice); 
 int splicestr_atoi(const struct splicestr* str);
 
 #endif

@@ -57,16 +57,16 @@ void splicestr_substr(const struct splicestr* source, SPLICESTR_INT from, SPLICE
     result->length = length;
 }
 
-void create_lexer(lexer* lex, const char* input) {
+void create_lexer(struct lexer* lex, const char* input) {
     splicestr_create(input, lex->input);
     lex->position = 0;
 }
 
-void destroy_lexer(lexer* lex) {
+void destroy_lexer(struct lexer* lex) {
     splicestr_destroy(lex->input);
 }
 
-int get_next_token(lexer* lex, struct splicestr* splice) {
+int get_next_token(struct lexer* lex, struct splicestr* splice) {
     if (lex->position == lex->input->length) return -3;
     regmatch_t matches[lex->rules->length + 1];
     bzero(&matches, sizeof(regmatch_t)*(lex->rules->length + 1));

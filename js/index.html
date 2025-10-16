@@ -40,15 +40,16 @@
         <div class="groupbox" data-caption="Syntax">
             <h2>About the syntax</h2>
             <p>
-                HFML is designed to use the least amount of resources possible to render complex web pages, therefore we use the least amount of tokens possible in
-                parsing all the language primitives. There are a few rules to understand:
+                HFML is designed to render complex interfaces using minimal system resources. To achieve this, the syntax is intentionally compact and token-efficient.
+Here are the key rules to understand:
                 <ul>
-                    <li>Everything insde <span class="code">&lt;&gt;</span> is considered and rendered as text.</li>
-                    <li>Text can be modified to have special semantic attributes with <span class="code">[]</span>. This is equivalent to HTML's elements like tags, classes, ids, etc.</li>
-                    <li>There are predefined attributes that function as HTML's tags. They are usually the same as the original HTML tags' name.</li>
-                    <li>Elements starting with a <span class="code">#</span> are considered to be ids.</li>
-                    <li>Attributes can have general and special modifiers that are separated by <span class="code">:</span>. Any number of modifiers are accepted.</li>
-                    <li>Events are special attributes. There is no need for any client side programming, since every event can be handled the predefined event handlers.</li>
+                    <li><strong>Elements: </strong>Everything inside <span class="code">&lt;&gt;</span> represents an element (similar to an HTML tag). Text content is enclosed in <span class="code">{}</span>.</li>
+                    <li><strong>Attributes: </strong>Elements can include attributes inside <span class="code">[]</span>, which serve a similar purpose to HTML attributes such as tags, classes, and IDs.</li>
+                    <li><strong>Predefined attributes: </strong>Some attributes act as built-in equivalents of standard HTML tags (e.g., <span class="code">[div]</span>, <span class="code">[span]</span>).</li>
+                    <li><strong>Identifiers: </strong>Elements beginning with <span class="code">#</span> are treated as identifiers.</li>
+                    <li><strong>Modifiers: </strong>Attributes can include modifiers separated by <span class="code">:</span>. Multiple modifiers are allowed (e.g., <span class="code">[style:bold:italic]</span>).</li>
+                    <li><strong>Events: </strong>Events are defined as special attributes. HFML doesn't require client-side scripting — all events are handled through predefined event handlers. This page demonstrates how browsers process HFML events. The reference implementation for the HFML parser and event system is available in <a href="demo.js">demo.js</a>.</li>
+                    <li><strong>Styling: </strong>HFML's design principles specify how each element should behave within its styling context. The visual style itself is determined by the user's desktop environment, ensuring a consistent look and feel across all HFML applications.</li>
                 </ul>
             </p>
         </div>
