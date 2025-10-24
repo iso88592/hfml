@@ -3,47 +3,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "splicestr.h"
+#include <stdbool.h>
+#include "hfml_lexer.h"
 
 #define TC(count, tp, ...) test[count] = tp; int a##count[] = {__VA_ARGS__}; testA[count] = a##count;
 
-enum tokens {
-    OPEN_COMP = 0,
-    CLOSE_COMP,
-    OPEN_BR,
-    CLOSE_BR,
-    OPEN_PAREN,
-    CLOSE_PAREN,
-    COLON,
-    COMMA,
-    EQUALS,
-    HASH,
-    IDENTIFIER,
-    NUMBER,
-    LITERAL,
-    WHITESPACE,
-    ERROR
-};
-
-const char* int_to_token(int t) {
-    switch (t) {
-        case OPEN_COMP: return "OPEN_COMP"; break;
-        case CLOSE_COMP: return "CLOSE_COMP"; break;
-        case OPEN_BR: return "OPEN_BR"; break;
-        case CLOSE_BR: return "CLOSE_BR"; break;
-        case OPEN_PAREN: return "OPEN_PAREN"; break;
-        case CLOSE_PAREN: return "CLOSE_PAREN"; break;
-        case COLON: return "COLON"; break;
-        case COMMA: return "COMMA"; break;
-        case EQUALS: return "EQUALS"; break;
-        case HASH: return "HASH"; break;
-        case IDENTIFIER: return "IDENTIFIER"; break;
-        case NUMBER: return "NUMBER"; break;
-        case LITERAL: return "LITERAL"; break;
-        case WHITESPACE: return "WHITESPACE"; break;
-    }
-    return "UNDEFINED";
-}
 
 int main() {
     struct ruleset rs;
@@ -52,7 +16,6 @@ int main() {
     const char* test[test_count];
     int* testA[test_count];
 
-
     TC(0, "hello world", IDENTIFIER, WHITESPACE, IDENTIFIER, -1);
     TC(1, " \r\t", WHITESPACE, -1);
     TC(2, "<hello>", OPEN_COMP, IDENTIFIER, CLOSE_COMP, -1);
@@ -60,32 +23,18 @@ int main() {
     TC(4, "<[h:1]{Heading}>", OPEN_COMP, OPEN_BR, IDENTIFIER, COLON, NUMBER, CLOSE_BR, LITERAL, CLOSE_COMP, -1);
     TC(5, "<{literal}> [:=] identifier(identifier,26,#a12)", OPEN_COMP, LITERAL, CLOSE_COMP, WHITESPACE, OPEN_BR, COLON, EQUALS, CLOSE_BR, WHITESPACE, IDENTIFIER, OPEN_PAREN, IDENTIFIER, COMMA, NUMBER, COMMA, HASH, IDENTIFIER, CLOSE_PAREN, -1);
     TC(6, "{emoji✅ literals😂}", LITERAL, -1);
-    TC(7, "{not a literal either", ERROR, 0);
+    TC(7, "{not a literal either", HFML_TOKEN_COUNT, 0);
     TC(8, "{árvíztűrő tükörfúrógép} {&x7B;} {&x7D;}", LITERAL, WHITESPACE, LITERAL, WHITESPACE, LITERAL, -1);
     TC(9, "\t{⎧⎨⎩}\r\rS",WHITESPACE, LITERAL, WHITESPACE, IDENTIFIER, -1);
-    TC(10, "{{}", ERROR, 0);
-    TC(11, "{}}", LITERAL, ERROR, 2);
+    TC(10, "{{}", HFML_TOKEN_COUNT, 0);
+    TC(11, "{}}", LITERAL, HFML_TOKEN_COUNT, 2);
     TC(12, "{a}{b}", LITERAL, LITERAL, -1);
 
-    TC(13, "not✅ a literal}", IDENTIFIER, ERROR, 3);
-    TC(14, "árvíztűrő tükörfúrógép", ERROR, 0);
-    TC(15, "not✅identifier", IDENTIFIER, ERROR, 3);
+    TC(13, "not✅ a literal}", IDENTIFIER, HFML_TOKEN_COUNT, 3);
+    TC(14, "árvíztűrő tükörfúrógép", HFML_TOKEN_COUNT, 0);
+    TC(15, "not✅identifier", IDENTIFIER, HFML_TOKEN_COUNT, 3);
 
-    rs.rules[0] = "<";
-    rs.rules[1] = ">";
-    rs.rules[2] = "\\[";
-    rs.rules[3] = "\\]";
-    rs.rules[4] = "\\(";
-    rs.rules[5] = "\\)";
-    rs.rules[6] = ":";
-    rs.rules[7] = ",";
-    rs.rules[8] = "=";
-    rs.rules[9] = "#";
-    rs.rules[10] = "[a-zA-Z_][a-zA-Z0-9_$]*";
-    rs.rules[11] = "[0-9]+";
-    rs.rules[12] = "\\{[^{}]*\\}";
-    rs.rules[13] = "[ \t\n\r]+";
-    rs.length = 14;
+    hfml_lexer_compile_rules(&rs);
 
     struct splicestr input;
     struct splicestr match;
