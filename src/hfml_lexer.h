@@ -1,6 +1,5 @@
 #ifndef HFML_LEXER_H
 #define HFML_LEXER_H
-#include "splicestr.h"
 
 enum tokens {
     OPEN_COMP = 0,
@@ -20,6 +19,7 @@ enum tokens {
     HFML_TOKEN_COUNT
 };
 
+#include "splicestr.h"
 
 const char* int_to_token(int t);
 void hfml_lexer_compile_rules(struct ruleset *rs);

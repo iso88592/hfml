@@ -43,7 +43,9 @@ struct splicestr {
 struct ruleset {
     const char* rules[SPLICESTR_MAX_RULE_COUNT];
     int length;
+#ifndef SPLICESTR_QUICK_PARSE    
     regex_t regex;
+#endif    
 };
 
 struct lexer {

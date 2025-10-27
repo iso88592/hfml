@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdbool.h>
 #include "splicestr.h"
 
+
+#ifdef SPLICESTR_QUICK_PARSE
+void compile_ruleset(struct ruleset* ruleset) {
+}
+#else
 void compile_ruleset(struct ruleset* ruleset) {
     int cs = SPLICESTR_REGEX_SIZE;
 #ifdef SPLICESTR_REGEX_HEAP    
@@ -30,6 +36,7 @@ void compile_ruleset(struct ruleset* ruleset) {
     SPLICESTR_FREE(result);
 #endif
 }
+#endif
 
 void splicestr_create(const char* source, struct splicestr* str) {
     str->length = strlen(source);
@@ -66,11 +73,19 @@ void destroy_lexer(struct lexer* lex) {
     splicestr_destroy(lex->input);
 }
 
+#ifdef SPLICESTR_QUICK_PARSE
+extern int quick_parse(const char* data, regmatch_t matches[]);
+#endif
+
 int get_next_token(struct lexer* lex, struct splicestr* splice) {
     if (lex->position == lex->input->length) return -3;
     regmatch_t matches[lex->rules->length + 1];
     bzero(&matches, sizeof(regmatch_t)*(lex->rules->length + 1));
+#ifdef SPLICESTR_QUICK_PARSE
+    int r = quick_parse(lex->input->data + lex->position, matches);
+#else
     int r = regexec(&lex->rules->regex, lex->input->data + lex->position, lex->rules->length+1, matches, 0);
+#endif
     if (r == 0) {
         for (int i = 1; i < lex->rules->length+1; i++) {
             if (matches[0].rm_eo == matches[i].rm_eo) {

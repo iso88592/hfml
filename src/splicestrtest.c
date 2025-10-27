@@ -93,8 +93,9 @@ int main() {
         }
         destroy_lexer(&lex);
     }
+#ifndef SPLICESTR_QUICK_PARSE
     regfree(&rs.regex);
-
+#endif
     printf("Test finished with \033[32m%d\033[0m successful cases and \033[31m%d\033[0m failing\n", success, failure);
     if (failure != 0) {
         return 1;
